@@ -143,6 +143,7 @@ class FieldLists():
         'id',
         'iops',
         '_port',
+        'multi_az',
         'status',
         'allocated_storage',
         'master_username',
