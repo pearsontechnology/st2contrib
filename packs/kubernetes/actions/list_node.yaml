@@ -1,0 +1,6 @@
+name: list_node
+runner_type: run-python
+description: "list of k8s nodes "
+enabled: true
+entry_point: "list_node.py"
+parameters: {}
