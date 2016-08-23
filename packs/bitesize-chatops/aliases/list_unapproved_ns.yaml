@@ -1,0 +1,9 @@
+---
+pack: "bitesize-chatops"
+name: "list_unapproved_ns"
+action_ref: "bitesize.list_unapproved_ns"
+description: "list unapproved namespaces"
+formats:
+  - "list unap"
+ack:
+  append_url: false

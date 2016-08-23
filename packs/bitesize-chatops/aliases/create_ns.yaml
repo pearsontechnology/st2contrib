@@ -1,0 +1,9 @@
+---
+pack: "bitesize-chatops"
+name: "create_ns"
+action_ref: "kubernetes.create_ns"
+description: "create ns"
+formats:
+  - "create {{ns}} suffix {{suffix}}"
+ack:
+  append_url: false

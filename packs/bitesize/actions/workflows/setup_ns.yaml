@@ -1,0 +1,62 @@
+---
+    chain:
+        -
+            name: "ns_approved"
+            ref: "pearson.nsapproved"
+            parameters:
+                ns: "{{namespace}}"
+            on-success: "get_jenkins"
+            on-failure: "fail"
+        -
+            name: "get_jenkins"
+            ref: "git.clone"
+            parameters:
+                destination: "/tmp/jenkins"
+                source: "https://github.com/pearsontechnology/jenkins-bootstrap"
+            on-success: "update_jenkins"
+            on-failure: "fail"
+        -
+            name: "update_jenkins"
+            ref: "pearson.updatejenkins"
+            parameters:
+                source: "/tmp/jenkins"
+                ns: "{{namespace}}"
+                project: "{{project}}"
+                gitrepo: "{{gitrepo}}"
+            on-success: "install_jenkins_rc"
+            on-failure: "fail"
+        -
+            name: "install_jenkins_rc"
+            ref: "kubernetes.install"
+            parameters:
+                source: "/tmp/jenkins/jenkins-rc.json" 
+            on-success: "install_jenkins_svc"
+            on-failure: "fail"
+        -
+            name: "install_jenkins_svc"
+            ref: "kubernetes.install"
+            parameters:
+                source: "/tmp/jenkins/jenkins-svc.json" 
+            on-success: "install_jenkins_ing"
+            on-failure: "fail"
+        -
+            name: "install_jenkins_ing"
+            ref: "kubernetes.install"
+            parameters:
+                source: "/tmp/jenkins/jenkins-ing.json" 
+            on-success: "setquota"
+            on-failure: "fail"
+        -
+            name: "setquota"
+            ref: "kubernetes.setquota"
+            parameters:
+                ns: "{{namespace}}"
+            on-failure: "fail"
+# mark ns setup
+        -
+            name: "fail"
+            ref: "core.local"
+            parameters:
+                cmd: "echo fail c4"
+    default: "get_jenkins"
+

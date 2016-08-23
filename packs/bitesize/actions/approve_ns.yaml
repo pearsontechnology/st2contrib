@@ -1,0 +1,9 @@
+name: approve_ns
+pack: "bitesize"
+runner_type: run-python
+description: "remvoes the 'status: approved' metadata from a ns"
+enabled: true
+entry_point: "approve_ns.py"
+parameters:
+  ns:
+    type: string

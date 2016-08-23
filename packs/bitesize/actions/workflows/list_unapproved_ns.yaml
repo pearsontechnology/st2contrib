@@ -1,0 +1,23 @@
+---
+  chain:
+    -
+      name: "list_ns"
+      ref: "kubernetes.list_namespaces"
+      on-success: "find_unapproved_ns"
+      on-failure: "fail"
+    -
+      name: "find_unapproved_ns"
+      ref: "bitesize.find_unapproved_ns"
+      parameters:
+        allns: "{{list_ns.stdout}}"
+      on-failure: "fail"
+      notify:
+        on-success:
+          routes:
+            - "chatops"
+          message: "\"@bitesize-andy: Action succeeded.\""
+    -
+      name: "fail"
+      ref: "core.local"
+      parameters:
+        cmd: "echo fail c4"

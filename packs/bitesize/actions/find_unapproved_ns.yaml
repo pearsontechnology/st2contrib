@@ -1,0 +1,11 @@
+name: find_unapproved_ns
+pack: "bitesize"
+runner_type: run-python
+description: "take a list of k8s namespaces and split out the unapproved"
+enabled: true
+entry_point: "find_unapproved_ns.py"
+parameters:
+  allns:
+    type: object
+
+
