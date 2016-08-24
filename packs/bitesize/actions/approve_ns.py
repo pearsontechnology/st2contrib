@@ -40,7 +40,7 @@ class ApproveNS(Action):
         """
 
         #patch = { "op": "remove", "path": "/metadata/name/status" }
-        patch = '{"metadata":{"labels":{"status":null}}}'
+        patch = {"metadata":{"labels":{"status":None}}}
 
         self.env = self.config.get('environment')
         region   = self.config.get('region')
