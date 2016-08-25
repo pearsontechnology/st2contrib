@@ -1,0 +1,22 @@
+name: to_datastore
+pack: "bitesize"
+runner_type: run-python
+description: "uses datastore to store arbitrary values"
+enabled: true
+entry_point: "to_datastore.py"
+parameters:
+  ns:
+    type: "string"
+    description: "namespace"
+    position: 0
+    required: true
+  key:
+    type: "string"
+    description: "key"
+    position: 1
+    required: true
+  value:
+    type: "string"
+    description: "value"
+    position: 2
+    required: true
