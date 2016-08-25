@@ -16,33 +16,20 @@
             on-success: "update_jenkins"
             on-failure: "fail"
         -
-            name: "update_jenkins"
-            ref: "bitesize.updatejenkins"
+            name: "install_jenkins"
+            ref: "bitesize.install_jnkins"
             parameters:
                 source: "/tmp/jenkins/jenkins/templates"
                 ns: "{{namespace}}"
-                gitrepo: "{{gitrepo}}"
-            on-success: "install_jenkins_rc"
+            on-success: "delete_jenkins"
             on-failure: "fail"
         -
-            name: "install_jenkins_rc"
-            ref: "kubernetes.install"
+            name: "delete_jenkins"
+            ref: "linux.rm"
             parameters:
-                source: "/tmp/jenkins/jenkins-rc.json" 
-            on-success: "install_jenkins_svc"
-            on-failure: "fail"
-        -
-            name: "install_jenkins_svc"
-            ref: "kubernetes.install"
-            parameters:
-                source: "/tmp/jenkins/jenkins-svc.json" 
-            on-success: "install_jenkins_ing"
-            on-failure: "fail"
-        -
-            name: "install_jenkins_ing"
-            ref: "kubernetes.install"
-            parameters:
-                source: "/tmp/jenkins/jenkins-ing.json" 
+                force: true
+                recursive: true
+                target: "/tmp/jenkins"
             on-success: "setquota"
             on-failure: "fail"
         -
@@ -51,11 +38,8 @@
             parameters:
                 ns: "{{namespace}}"
             on-failure: "fail"
-# mark ns setup
         -
             name: "fail"
             ref: "core.local"
             parameters:
                 cmd: "echo fail c4"
-    default: "get_jenkins"
-

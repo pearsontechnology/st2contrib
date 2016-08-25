@@ -16,7 +16,15 @@
                 label: "status"
                 action: "add"
                 data: "unapproved"
-            on-success: "label2"
+            on-success: "save_repo"
+            on-failure: "fail"
+        -
+            name: "save_repo"
+            ref: "bitesize.to_datastore"
+            parameters:
+                ns: "{{ns}}-{{suffix}}"
+                key: "gitrepo"
+                value: "{{gitrepo}}"
             on-failure: "fail"
         -
             name: "fail"
