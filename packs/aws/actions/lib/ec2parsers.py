@@ -185,8 +185,8 @@ class ResultSets(object):
             return self.parseEC2Object(output)
         elif isinstance(output, boto.cloudformation.stack.Stack):
             return self.parseStackObject(output)
-        elif isinstance(output, boto.rds.dbinstance.DBInstance):
-            return self.parseDBInstanceObject(output)
+#        elif isinstance(output, boto.rds.dbinstance.DBInstance):
+#            return self.parseDBInstanceObject(output)
         else:
             return output
 

@@ -36,6 +36,11 @@ class BaseAction(Action):
         del self.setup['region']
         return boto.route53.connection.Route53Connection(**self. setup)
 
+    def cfn_connect(self):
+        region = self.setup['region']
+        del self.setup['region']
+        return boto.cloudformation.connect_to_region(region, **self.setup)
+
     def get_r53zone(self, zone):
         conn = self.r53_connect()
         return conn.get_zone(zone)
@@ -89,6 +94,8 @@ class BaseAction(Action):
             obj = self.ec2_connect()
         elif cls == 'VPCConnection':
             obj = self.vpc_connect()
+        elif cls == 'CloudFormationConnection':
+            obj = self.cfn_connect()
         elif module_path == 'boto.route53.zone' and cls == 'Zone':
             zone = kwargs['zone']
             del kwargs['zone']

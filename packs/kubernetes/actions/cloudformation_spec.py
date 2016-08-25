@@ -33,9 +33,9 @@ class CloudFormationSpec(Action):
         try:
             stack_name = stack_name_or_id = payload['labels']['stack_name']
             s3_bucket_url = self.config.get('s3_bucket_url')
-            template_filename = payload['labels']['template_filename']
+            template_file = self.config.get('template_path') + payload['labels']['template_filename']
             namespace = payload['namespace']
-            template_url = urljoin(s3_bucket_url, template_filename)
+            template_body = open(template_file, 'r').read()
             parameters_config = self.config['cloudformation']['stack_params']
             if 'version' in payload['labels']:
                 if '3.2' in payload['labels']['version']:
@@ -52,7 +52,7 @@ class CloudFormationSpec(Action):
         newpayload = {
             'stack_name': stack_name,
             'stack_name_or_id': stack_name,
-            'template_url': template_url,
+            'template_body': template_body,
             'parameters': parameters,
             'namespace': namespace,
             'db_name': db_name,
