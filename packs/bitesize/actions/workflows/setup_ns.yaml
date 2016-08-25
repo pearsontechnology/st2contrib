@@ -12,16 +12,15 @@
             ref: "git.clone"
             parameters:
                 destination: "/tmp/jenkins"
-                source: "https://github.com/pearsontechnology/jenkins-bootstrap"
+                source: "git@github.com:pearsontechnology/kubernetes-charts.git"
             on-success: "update_jenkins"
             on-failure: "fail"
         -
             name: "update_jenkins"
-            ref: "pearson.updatejenkins"
+            ref: "bitesize.updatejenkins"
             parameters:
-                source: "/tmp/jenkins"
+                source: "/tmp/jenkins/jenkins/templates"
                 ns: "{{namespace}}"
-                project: "{{project}}"
                 gitrepo: "{{gitrepo}}"
             on-success: "install_jenkins_rc"
             on-failure: "fail"
