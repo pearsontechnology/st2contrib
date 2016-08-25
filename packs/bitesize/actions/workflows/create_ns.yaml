@@ -1,0 +1,25 @@
+---
+    chain:
+        -
+            name: "create_ns"
+            ref: "kubernetes.create_ns"
+            parameters:
+                ns: "{{ns}}"
+                suffix: "{{suffix}}"
+            on-success: "label"
+            on-failure: "fail"
+        -
+            name: "label"
+            ref: "kubernetes.nslabel"
+            parameters:
+                ns: "{{ns}}-{{suffix}}"
+                label: "status"
+                action: "add"
+                data: "unapproved"
+            on-success: "label2"
+            on-failure: "fail"
+        -
+            name: "fail"
+            ref: "core.local"
+            parameters:
+                cmd: "echo fail"

@@ -1,0 +1,24 @@
+---
+  name: "create_ns"
+  runner_type: "action-chain"
+  description: "Create new kubernetes namespace"
+  enabled: true
+  entry_point: "workflows/create_ns.yaml"
+  pack: "bitesize"
+  parameters:
+    ns:
+      type: "string"
+      description: "environment name"
+      position: 0
+      required: true
+    suffix:
+      type: "string"
+      enum:
+        - dev
+        - tst
+        - stg
+        - prd
+      default: dev
+      description: "environment suffix"
+      required: true
+      position: 1
