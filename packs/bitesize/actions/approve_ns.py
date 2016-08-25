@@ -4,6 +4,7 @@ import importlib
 import logging
 import os
 import json
+import sys
 from datetime import datetime
 
 from st2actions.runners.pythonrunner import Action
@@ -39,7 +40,6 @@ class ApproveNS(Action):
 
         """
 
-        #patch = { "op": "remove", "path": "/metadata/name/status" }
         patch = {"metadata":{"labels":{"status":None}}}
 
         self.env = self.config.get('environment')
@@ -50,8 +50,14 @@ class ApproveNS(Action):
 
         self.k8s = K8sClient(k8surl, k8suser, k8spass)
 
-        print self.k8s.k8s.read_namespace(ns)
-        print self.k8s.k8s.patch_namespace(patch, ns)
+        nsdata = self.k8s.k8s.read_namespace(ns).to_dict()
+
+        if 'metadata' in nsdata and 'labels' in nsdata['metadata'] and 'status' in nsdata['metadata']['labels']:
+            print json.dumps(self.k8s.k8s.patch_namespace(patch, ns).to_dict(), sort_keys=True, indent=2, default=self.json_serial)
+        else:
+            sys.stderr.write("label didnt exist")
+            sys.exit(-1)
+
 
     def json_serial(self, obj):
         """JSON serializer for objects not serializable by default json code"""

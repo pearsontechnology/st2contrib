@@ -6,6 +6,6 @@
   entry_point: "workflows/setup_ns.yaml"
   pack: "bitesize"
   parameters:
-    payload:
-      type: "object"
-      description: "payload object from kubernetes sensor"
+    ns:
+      type: "string"
+      description: "namespace to setup"

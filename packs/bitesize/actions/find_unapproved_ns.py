@@ -23,7 +23,7 @@ class GetUnapproved(Action):
         if len(output) > 0:
             print json.dumps(output)
         else:
-            print "no unapproved"
+            print "{}"
 
     def json_serial(self, obj):
         """JSON serializer for objects not serializable by default json code"""
@@ -32,4 +32,3 @@ class GetUnapproved(Action):
             serial = obj.isoformat()
             return serial
         raise TypeError("Type not serializable")
-

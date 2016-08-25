@@ -1,26 +1,38 @@
 ---
     chain:
         -
-            name: "ns_approved"
-            ref: "pearson.nsapproved"
+            name: "random_dir"
+            ref: "core.local"
             parameters:
-                ns: "{{namespace}}"
+                cmd: echo $$
+            publish:
+                jenkdir: "/tmp/jenkins.{{ random_dir.stdout }}"
+            on-success: "approve_ns"
+            on-failure: "fail"
+        -
+            name: "approve_ns"
+            ref: "kubernetes.nslabel"
+            parameters:
+                ns: "{{ ns }}"
+                label: "status"
+                action: "remove"
             on-success: "get_jenkins"
             on-failure: "fail"
         -
             name: "get_jenkins"
             ref: "git.clone"
             parameters:
-                destination: "/tmp/jenkins"
+                destination: "{{ jenkdir }}"
                 source: "git@github.com:pearsontechnology/kubernetes-charts.git"
-            on-success: "update_jenkins"
+                hosts: "localhost"
+            on-success: "install_jenkins"
             on-failure: "fail"
         -
             name: "install_jenkins"
-            ref: "bitesize.install_jnkins"
+            ref: "bitesize.install_jenkins"
             parameters:
-                source: "/tmp/jenkins/jenkins/templates"
-                ns: "{{namespace}}"
+                source: "{{ jenkdir }}/jenkins/templates"
+                ns: "{{ ns }}"
             on-success: "delete_jenkins"
             on-failure: "fail"
         -
@@ -29,14 +41,15 @@
             parameters:
                 force: true
                 recursive: true
-                target: "/tmp/jenkins"
+                target: "{{ jenkdir }}"
+                hosts: "localhost"
             on-success: "setquota"
             on-failure: "fail"
         -
             name: "setquota"
             ref: "kubernetes.setquota"
             parameters:
-                ns: "{{namespace}}"
+                ns: "{{ ns }}"
             on-failure: "fail"
         -
             name: "fail"
