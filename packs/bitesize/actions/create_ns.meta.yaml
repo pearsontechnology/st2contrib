@@ -22,3 +22,8 @@
       description: "environment suffix"
       required: true
       position: 1
+    gitrepo:
+      type: "string"
+      description: "git repo to use with jenkins. will be ignored if suffix is not dev"
+      position: 2
+      required: true
