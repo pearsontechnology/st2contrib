@@ -52,12 +52,13 @@ class ApproveNS(Action):
 
         nsdata = self.k8s.k8s.read_namespace(ns).to_dict()
 
-        if 'metadata' in nsdata and 'labels' in nsdata['metadata'] and 'status' in nsdata['metadata']['labels']:
-            print json.dumps(self.k8s.k8s.patch_namespace(patch, ns).to_dict(), sort_keys=True, indent=2, default=self.json_serial)
-        else:
-            sys.stderr.write("label didnt exist")
+        try:
+            if 'status' in nsdata['metadata']['labels']:
+                print json.dumps(self.k8s.k8s.patch_namespace(patch, ns).to_dict(), sort_keys=True, indent=2, default=self.json_serial)
+                sys.exit(0)
+        except Exception as e:
+            sys.stderr.write("Namespace %s status label didnt exist: %s" % (ns, e))
             sys.exit(-1)
-
 
     def json_serial(self, obj):
         """JSON serializer for objects not serializable by default json code"""
