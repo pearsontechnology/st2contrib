@@ -10,61 +10,7 @@ from st2actions.runners.pythonrunner import Action
 from st2client.client import Client
 from st2client.models import KeyValuePair
 
-class K8sClient:
-
-    def __init__(self, master_url, username, password):
-
-        self.k8s = (
-            self._get_k8s_client('k8sv1','ApivApi', master_url, username, password),
-            self._get_k8s_client('k8sv1beta1','ApisextensionsvbetaApi', master_url, username, password)
-        )
-
-    def _get_k8s_client(self, api_version, api_library, master_url, username, password):
-
-        api_version = importlib.import_module(api_version)
-        api_library = getattr(api_version, api_library)
-        api_version.Configuration().verify_ssl = False
-        api_version.Configuration().username = username
-        api_version.Configuration().password = password
-
-        apiclient = api_version.ApiClient(
-            master_url,
-            header_name="Authorization",
-            header_value=api_version.configuration.get_basic_auth_token())
-        apiclient.default_headers['Content-Type'] = 'application/json'
-
-        client = api_library(apiclient)
-        return client
-
-    def _lookup_func(self, func):
-        funcmap = {
-                   "service": "create_namespaced_service",
-                   "ingress": "create_namespaced_ingress",
-                   "deployments": "create_namespaced_deployment"
-                  }
-
-        return funcmap[func]
-
-    def k8s_action(self, action_type, ns, data):
-
-        myfunc = self._lookup_func(action_type)
-
-        if(myfunc in dir(self.k8s[0])):
-            myapi = self.k8s[0]
-        if(myfunc in dir(self.k8s[1])):
-            myapi = self.k8s[1]
-
-        data = getattr(myapi, myfunc)(data, ns).to_dict()
-
-        print json.dumps(data, sort_keys=True, indent=2, default=self.json_serial)
-
-    def json_serial(self, obj):
-        """JSON serializer for objects not serializable by default json code"""
-
-        if isinstance(obj, datetime):
-            serial = obj.isoformat()
-            return serial
-        raise TypeError("Type not serializable")
+from lib import k8s
 
 class UpdateJenkins(Action):
 
@@ -86,7 +32,7 @@ class UpdateJenkins(Action):
         if suffix != "dev":
             return 0
 
-        self.k8s = K8sClient(k8surl, k8suser, k8spass)
+        self.k8s = k8s.K8sClient(k8surl, k8suser, k8spass)
         client = Client(base_url='http://localhost')
 
         self.source = source
@@ -110,7 +56,7 @@ class UpdateJenkins(Action):
 
         data['spec']['rules'][0]['host'] = jenkins_url
 
-        self.k8s.k8s_action("ingress", self.ns, data)
+        self.k8s.k8s_action("ingress", self.ns, data, action_type="create")
 
     def createDep(self):
 
@@ -122,7 +68,7 @@ class UpdateJenkins(Action):
 
         data['spec']['template']['spec']['containers'][0]['env'].append(repo)
 
-        self.k8s.k8s_action("deployments", self.ns, data)
+        self.k8s.k8s_action("deployments", self.ns, data, action_type="create")
 
     def createSvc(self):
 
@@ -133,7 +79,7 @@ class UpdateJenkins(Action):
 
             svc['metadata']['namespace'] = self.ns
 
-            self.k8s.k8s_action("service", self.ns, svc)
+            self.k8s.k8s_action("service", self.ns, svc, action_type="create")
 
     def openFile(self, the_file):
         
@@ -142,3 +88,4 @@ class UpdateJenkins(Action):
         with open(src) as data_file:    
             data = json.load(data_file)
             return data
+

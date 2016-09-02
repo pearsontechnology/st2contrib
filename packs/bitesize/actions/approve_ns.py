@@ -8,29 +8,7 @@ import sys
 from datetime import datetime
 
 from st2actions.runners.pythonrunner import Action
-
-class K8sClient:
-
-    def __init__(self, master_url, username, password):
-
-        self.k8s = self._get_k8s_client('k8sv1','ApivApi', master_url, username, password)
-
-    def _get_k8s_client(self, api_version, api_library, master_url, username, password):
-
-        api_version = importlib.import_module(api_version)
-        api_library = getattr(api_version, api_library)
-        api_version.Configuration().verify_ssl = False
-        api_version.Configuration().username = username
-        api_version.Configuration().password = password
-
-        apiclient = api_version.ApiClient(
-            master_url,
-            header_name="Authorization",
-            header_value=api_version.configuration.get_basic_auth_token())
-        apiclient.default_headers['Content-Type'] = 'application/json'
-
-        client = api_library(apiclient)
-        return client
+from lib import k8s
 
 class ApproveNS(Action):
 
@@ -48,19 +26,19 @@ class ApproveNS(Action):
         k8spass  = self.config.get('password')
         k8surl   = self.config.get('kubernetes_api_url')
 
-        self.k8s = K8sClient(k8surl, k8suser, k8spass)
+        self.k8s = k8s.K8sClient(k8surl, k8suser, k8spass)
 
-        nsdata = self.k8s.k8s.read_namespace(ns).to_dict()
+        nsdata = self.k8s.k8s[0].read_namespace(ns).to_dict()
 
         try:
             if 'status' in nsdata['metadata']['labels']:
-                print json.dumps(self.k8s.k8s.patch_namespace(patch, ns).to_dict(), sort_keys=True, indent=2, default=self.json_serial)
+                print json.dumps(self.k8s.k8s[0].patch_namespace(patch, ns).to_dict(), sort_keys=True, indent=2, default=self._json_serial)
                 sys.exit(0)
         except Exception as e:
             sys.stderr.write("Namespace %s status label didnt exist: %s" % (ns, e))
             sys.exit(-1)
 
-    def json_serial(self, obj):
+    def _json_serial(self, obj):
         """JSON serializer for objects not serializable by default json code"""
 
         if isinstance(obj, datetime):
