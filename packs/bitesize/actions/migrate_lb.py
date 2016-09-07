@@ -8,10 +8,6 @@ from datetime import datetime
 
 from st2actions.runners.pythonrunner import Action
 
-#boto3.set_stream_logger('boto3.resources', logging.DEBUG)
-#boto3.set_stream_logger('botocore', logging.DEBUG)
-#boto3.set_stream_logger('boto3', logging.DEBUG)
-
 class ELBMigrate(Action):
 
     def run(self, cluster):
@@ -30,7 +26,6 @@ class ELBMigrate(Action):
         self.env = self.config.get('environment')
 
         self.asgc = boto3.client('autoscaling', region_name=region)
-
 
         #self.get_asgs()
 

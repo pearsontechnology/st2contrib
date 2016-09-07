@@ -1,0 +1,58 @@
+---
+    chain:
+        -
+            name: "random_dir"
+            ref: "core.local"
+            parameters:
+                cmd: echo $$
+            publish:
+                jenkdir: "/tmp/jenkins.{{ random_dir.stdout }}"
+            on-success: "approve_ns"
+            on-failure: "fail"
+        -
+            name: "approve_ns"
+            ref: "kubernetes.nslabel"
+            parameters:
+                ns: "{{ ns }}"
+                label: "status"
+                action: "remove"
+            on-success: "get_jenkins"
+            on-failure: "fail"
+        -
+            name: "get_jenkins"
+            ref: "git.clone"
+            parameters:
+                destination: "{{ jenkdir }}"
+                source: "git@github.com:pearsontechnology/kubernetes-charts.git"
+                hosts: "localhost"
+            on-success: "install_jenkins"
+            on-failure: "fail"
+        -
+            name: "install_jenkins"
+            ref: "bitesize.install_jenkins"
+            parameters:
+                source: "{{ jenkdir }}/jenkins/templates"
+                ns: "{{ ns }}"
+            on-success: "delete_jenkins"
+            on-failure: "fail"
+        -
+            name: "delete_jenkins"
+            ref: "linux.rm"
+            parameters:
+                force: true
+                recursive: true
+                target: "{{ jenkdir }}"
+                hosts: "localhost"
+            on-success: "setquota"
+            on-failure: "fail"
+        -
+            name: "setquota"
+            ref: "kubernetes.setquota"
+            parameters:
+                ns: "{{ ns }}"
+            on-failure: "fail"
+        -
+            name: "fail"
+            ref: "core.local"
+            parameters:
+                cmd: "echo fail c4"

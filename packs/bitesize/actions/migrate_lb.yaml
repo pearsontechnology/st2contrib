@@ -1,7 +1,7 @@
 ---
   name: "migrate_lb"
   entry_point: "migrate_lb.py"
-  pack: "kubernetes"
+  pack: "bitesize"
   description: "migrate applications running on a kubernetes cluster to another"
   enabled: true
   runner_type: run-python

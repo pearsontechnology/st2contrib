@@ -1,0 +1,17 @@
+name: install_jenkins
+pack: "bitesize"
+runner_type: run-python
+description: "install jenkins from templates directory"
+enabled: true
+entry_point: "install_jenkins.py"
+parameters:
+  source:
+    type: "string"
+    description: "directory where templates live"
+    position: 0
+    required: true
+  ns:
+    type: "string"
+    description: "ns"
+    position: 1
+    required: true

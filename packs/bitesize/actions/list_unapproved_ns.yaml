@@ -1,0 +1,17 @@
+---
+  name: "list_unapproved_ns"
+  runner_type: "action-chain"
+  description: "get a list of unnaproved namespaces"
+  enabled: true
+  entry_point: "workflows/list_unapproved_ns.yaml"
+  pack: "bitesize"
+  parameters:
+    skip_notify:
+      default:
+        - "list_ns"
+        - "list_unapproved_ns"
+  notify:
+    on-success:
+      routes:
+        - "chatops"
+      message: "\"@bitesize-andy: Action succeeded.\""

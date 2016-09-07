@@ -1,0 +1,11 @@
+---
+  name: "setup_ns"
+  runner_type: "action-chain"
+  description: "Setup kubernetes namespace once approved"
+  enabled: true
+  entry_point: "workflows/setup_ns.yaml"
+  pack: "bitesize"
+  parameters:
+    ns:
+      type: "string"
+      description: "namespace to setup"
