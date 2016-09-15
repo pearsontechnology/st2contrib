@@ -1,0 +1,15 @@
+---
+  chain:
+    -
+      name: "create_rule"
+      ref: "bitesize.cass_consul"
+      parameters:
+        cluster: "{{cluster}}"
+      on-success: "create_token"
+    -
+      name: "create_token"
+      ref: "consul.create_token"
+      parameters:
+        name: "{{cluster}}"
+        acl_type: "client"
+        rules: "{{create_rule.stdout}}"
