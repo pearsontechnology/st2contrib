@@ -41,11 +41,11 @@ class UpdateJenkins(Action):
 
         self.gitrepo = client.keys.get_by_name(key).value
 
-        self.createSvc()
-        self.createDep()
-        self.createIng()
+        self._createSvc()
+        self._createDep()
+        self._createIng()
 
-    def createIng(self):
+    def _createIng(self):
 
         template = "jenkins-ingress.json.tmpl"
         data = self.openFile(template)
@@ -56,9 +56,11 @@ class UpdateJenkins(Action):
 
         data['spec']['rules'][0]['host'] = jenkins_url
 
-        self.k8s.k8s_action("ingress", self.ns, data, action_type="create")
+        resp = self.k8s.k8s_action("ingress", self.ns, data, action_type="create")
 
-    def createDep(self):
+        print json.dumps(resp, sort_keys=True, indent=2, default=self._json_serial)
+
+    def _createDep(self):
 
         template = "jenkins-deployment.json.tmpl"
         data = self.openFile(template)
@@ -68,9 +70,11 @@ class UpdateJenkins(Action):
 
         data['spec']['template']['spec']['containers'][0]['env'].append(repo)
 
-        self.k8s.k8s_action("deployments", self.ns, data, action_type="create")
+        resp = self.k8s.k8s_action("deployments", self.ns, data, action_type="create")
 
-    def createSvc(self):
+        print json.dumps(resp, sort_keys=True, indent=2, default=self._json_serial)
+
+    def _createSvc(self):
 
         template = "jenkins-svc.json.tmpl"
         data = self.openFile(template)
@@ -79,7 +83,9 @@ class UpdateJenkins(Action):
 
             svc['metadata']['namespace'] = self.ns
 
-            self.k8s.k8s_action("service", self.ns, svc, action_type="create")
+            resp = self.k8s.k8s_action("service", self.ns, svc, action_type="create")
+
+            print json.dumps(resp, sort_keys=True, indent=2, default=self._json_serial)
 
     def openFile(self, the_file):
         
@@ -89,3 +95,10 @@ class UpdateJenkins(Action):
             data = json.load(data_file)
             return data
 
+    def _json_serial(self, obj):
+        """JSON serializer for objects not serializable by default json code"""
+
+        if isinstance(obj, datetime):
+            serial = obj.isoformat()
+            return serial
+        raise TypeError("Type not serializable")
