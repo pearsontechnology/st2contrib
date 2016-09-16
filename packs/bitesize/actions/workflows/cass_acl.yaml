@@ -5,6 +5,8 @@
       ref: "bitesize.cass_consul"
       parameters:
         cluster: "{{cluster}}"
+      publish:
+        rule: "{{create_rule.stdout}}"
       on-success: "create_token"
     -
       name: "create_token"
@@ -12,4 +14,4 @@
       parameters:
         name: "{{cluster}}"
         acl_type: "client"
-        rules: "{{create_rule.stdout}}"
+        rules: "{{rule}}"

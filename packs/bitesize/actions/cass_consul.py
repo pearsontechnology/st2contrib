@@ -12,4 +12,4 @@ class CreateRule(Action):
     
     rule = { "key": { cluster: { "policy" : "write" }}, "service": { cluster: { "policy" : "write" }}, "event" : { cluster: { "policy" : "write" } }}
 
-    return json.dumps(rule)
+    print json.dumps(rule)
