@@ -15,7 +15,7 @@
       on-success: "create_rule"
     -
       name: "create_rule"
-      ref: "bitesize.create_consul_namespace"
+      ref: "bitesize.create_ns_consul_rule"
       parameters:
         namespace: "{{cluster}}"
         policy: "write"
