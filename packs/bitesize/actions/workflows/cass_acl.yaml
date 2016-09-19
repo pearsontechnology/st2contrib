@@ -1,10 +1,24 @@
 ---
   chain:
     -
-      name: "create_rule"
-      ref: "bitesize.cass_consul"
+      name: "list_tokens"
+      ref: "consul.list_tokens"
+      publish:
+        tokens: "{{list_tokens.stdout}}"
+      on-success: "check_consul_acl"
+    -
+      name: "check_consul_acl"
+      ref: "bitesize.check_consul_acl"
       parameters:
+        tokens: "{{tokens}}"
         cluster: "{{cluster}}"
+      on-success: "create_rule"
+    -
+      name: "create_rule"
+      ref: "bitesize.create_consul_namespace"
+      parameters:
+        namespace: "{{cluster}}"
+        policy: "write"
       publish:
         rule: "{{create_rule.stdout}}"
       on-success: "create_token"
