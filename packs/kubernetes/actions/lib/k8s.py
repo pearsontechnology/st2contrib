@@ -3,7 +3,7 @@ import importlib
 
 from datetime import datetime
 
-class K8sClient:
+class K8sClient(object):
 
     def __init__(self, master_url, username, password):
 
