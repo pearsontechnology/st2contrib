@@ -29,7 +29,7 @@ bitesize.cass_acl:
         namespace: <% $.cluster %>
         policy: "write"
       publish:
-        rule: <% $.thetoken %>
+        rule: <% task(create_rule).result.stdout %>
       on-success:
         - create_token
     create_token:

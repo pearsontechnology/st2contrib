@@ -1,0 +1,19 @@
+name: create_ns_vault_rule
+pack: "bitesize"
+runner_type: run-python
+description: "creates a vault acl rule"
+enabled: true
+entry_point: "create_ns_vault_rule.py"
+parameters:
+  namespace:
+    type: string
+    required: true
+    position: 0
+  policy:
+    type: string
+    required: true
+    enum:
+      - read
+      - write
+    default: read
+    position: 1
