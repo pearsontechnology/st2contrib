@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import json
+import sys
 
 from st2actions.runners.pythonrunner import Action
 
@@ -13,5 +14,5 @@ class CreateRule(Action):
         print token['ID'],
         return "match"
 
-    print ""
+    print "" 
     return "missed"
