@@ -1,4 +1,5 @@
-import boto
+import boto.cloudformation
+import boto.rds
 import six
 
 

@@ -36,13 +36,24 @@ class BaseAction(Action):
         del self.setup['region']
         return boto.route53.connection.Route53Connection(**self. setup)
 
+    def cfn_connect(self):
+        region = self.setup['region']
+        del self.setup['region']
+        return boto.cloudformation.connect_to_region(region, **self.setup)
+
     def get_r53zone(self, zone):
         conn = self.r53_connect()
         return conn.get_zone(zone)
-    
-    def get_boto3_session(self, resource):
-        return boto3.client(resource)
 
+    def get_boto3_session(self, resource):
+        region = self.setup['region']
+        del self.setup['region']
+        return boto3.client(resource, region_name=region)
+
+    def rds_connect(self):
+        region = self.setup['region']
+        del self.setup['region']
+        return boto.rds.connect_to_region(region, **self.setup)
 
     def st2_user_data(self):
         return self.userdata
@@ -89,6 +100,10 @@ class BaseAction(Action):
             obj = self.ec2_connect()
         elif cls == 'VPCConnection':
             obj = self.vpc_connect()
+        elif cls == 'CloudFormationConnection':
+            obj = self.cfn_connect()
+        elif cls == 'RDSConnection':
+            obj = self.rds_connect()
         elif module_path == 'boto.route53.zone' and cls == 'Zone':
             zone = kwargs['zone']
             del kwargs['zone']
@@ -96,7 +111,7 @@ class BaseAction(Action):
         elif module_path == 'boto3':
             for k, v in kwargs.items():
                 if not v:
-                    del kwargs[k] 
+                    del kwargs[k]
             obj = self.get_boto3_session(cls)
         else:
             del self.setup['region']
@@ -104,7 +119,7 @@ class BaseAction(Action):
         resultset = getattr(obj, action)(**kwargs)
         formatted = self.resultsets.formatter(resultset)
         return formatted if isinstance(formatted, list) else [formatted]
-    
+
     def do_function(self, module_path, action, **kwargs):
         module = __import__(module_path)
         return getattr(module, action)(**kwargs)
