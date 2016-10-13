@@ -12,9 +12,9 @@ criteria:
   trigger.resource:
     type: "contains"
     pattern: "ADDED"
-  trigger.labels.type:
+  trigger.object_kind:
     type: "equals"
-    pattern: "cassandra"
+    pattern: "Cassandra"
 
 action:
   ref: "kubernetes.cassandra_create_chain"
