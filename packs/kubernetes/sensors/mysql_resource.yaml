@@ -1,7 +1,7 @@
 ---
-  class_name: "ThirdPartyResource"
-  entry_point: "third_party_resource.py"
-  description: "Sensor which watches Kubernetes API for new thirdpartyresource."
+  class_name: "MysqlResource"
+  entry_point: "mysql_resource.py"
+  description: "Sensor which watches Kubernetes API for new Mysql custom thirdpartyresource objects"
   trigger_types:
     -
       name: "thirdpartyobject"

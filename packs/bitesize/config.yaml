@@ -1,0 +1,39 @@
+---
+    user: "admin"
+    password: "vD9pSJGHFrLNaZKU"
+    kubernetes_api_url: "https://master-a.pidah.kube"
+    extension_url: "/apis/extensions/v1beta1/watch/thirdpartyresources"
+    verify: false
+
+    environment: "pidah"
+    region: "eu-west-1"
+    stack_id: "a"
+
+    domain: "prsn-dev.io"
+
+    cloudformation:
+      stack: "cloudformation"
+      stack_params:
+        KeyName: "bitesize-nonprod"
+        VpcId: "vpc-76f69212"
+        SubnetId1: "subnet-xxxxxxxx"
+        SubnetId2: "subnet-xxxxxxxx"
+        SubnetId3: "subnet-xxxxxxxx"
+        AmiId: "ami-xxxxxxxxx"
+        SecurityGroupId: "sg-xxxxxxxxx"
+        InstanceType: "m4.large"
+        Region: "eu-west-1"
+        MongoVersion: "2.6"
+
+
+    rds:
+      DBInstanceClass: "db.m3.xlarge"
+      Port: "3306"
+      Engine: "mysql"
+      AllocatedStorage: "100"
+      DBParameterGroupName: "some-group-name"
+      DBSubnetGroupName: "some-subnet-group"
+      BackupRetentionPeriod: "30"
+      StorageType: "gp2"
+      MultiAZ: true
+      VpcSecurityGroupIds: "sg-xxxxxxxxxxx"

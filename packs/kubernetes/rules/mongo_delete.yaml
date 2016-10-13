@@ -12,9 +12,9 @@ criteria:
   trigger.resource:
     type: "contains"
     pattern: "DELETED"
-  trigger.labels.type:
+  trigger.object_kind:
     type: "equals"
-    pattern: "mongo"
+    pattern: "Mongo"
 
 action:
   ref: "kubernetes.mongo_delete_chain"
