@@ -25,6 +25,7 @@ class UpdateJenkins(Action):
         k8suser  = self.config.get('user')
         k8spass  = self.config.get('password')
         k8surl   = self.config.get('kubernetes_api_url')
+        domain   = self.config.get('domain')
 
         self.project, suffix = ns.split("-")
 
@@ -52,7 +53,7 @@ class UpdateJenkins(Action):
 
         data['metadata']['namespace'] = self.ns
 
-        jenkins_url = self.project + ".prsn.io"
+        jenkins_url = self.project + self.domain
 
         data['spec']['rules'][0]['host'] = jenkins_url
 
@@ -82,10 +83,9 @@ class UpdateJenkins(Action):
             self.k8s.k8s_action("service", self.ns, svc, action_type="create")
 
     def openFile(self, the_file):
-        
+
         src = self.source + "/" + the_file
 
-        with open(src) as data_file:    
+        with open(src) as data_file:
             data = json.load(data_file)
             return data
-
