@@ -120,3 +120,52 @@ First of all, do these 2 manual steps -
     ```
     kubectl create -f name_of_your_file.yaml
     ```
+
+### Deploying Cassandra clusters in the Kubernetes Pack
+
+1. As with the mongo deployment above, add the vault token to stackstorm, and the public ip's of stackstorm and vpc-nat to the VPC nat security group.
+
+2. Create a demo namespace
+
+3. Create a cassandra third party resource:
+
+  * Create a yaml file with the below:
+
+    ```yaml
+    metadata:
+        name: demo-cass
+        namespace: demo
+        labels:
+            type: cassandra
+            version: '2.2'
+            stack_name: demo-cass
+    apiVersion: extensions/v1beta1
+    kind: ThirdPartyResource
+    description: ""
+    versions:
+      - name: stable/v1
+    ```
+
+  * With kubectl run:
+
+    ```
+    kubectl create -f name_of_your_file.yaml
+    ```
+
+4. Once the stack is built, the instances will continue to deploy and configure - this takes around 20m. The last thing you'll see in stackstorm is 3 cass_acl and a standalone vault_write action in the stackstorm history tab
+
+5. Upon completion there will be keys in consul under namespace/clustername and vault under the same for the password. The user will be bitesize
+
+6. To see the cluster status, login to any of the cassandra nodes and run:
+
+  ``` /home/cassandra/current/bin/nodetool status ```
+
+7. To delete, remove the third party resource within kubernetes
+
+  * With kubectl run:
+
+    ```
+    kubectl --namespace=demo delete thirdpartyresource demo-cass
+    ```
+
+  * You should be able to observe the deletion in both stackstorm and the cloudformation console

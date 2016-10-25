@@ -1,0 +1,15 @@
+name: check_consul_acl
+pack: "bitesize"
+runner_type: run-python
+description: "checks whether a token already exists"
+enabled: true
+entry_point: "check_consul_acl.py"
+parameters:
+  tokens:
+    type: string
+    required: true
+    position: 0
+  cluster:
+    type: string
+    required: true
+    position: 1
