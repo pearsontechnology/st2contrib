@@ -54,39 +54,57 @@ class ELBMigrate(Action):
                     self.my_asgs.append(tag['ResourceId'])
 
     def action(self, stack, lb, action):
-        """ 
-        :param str lb: which load balancer (live|prelive)
+        """
         :param str stack: a or b
+        :param str lb: which load balancer (live|prelive)
         :param str action: attach or detach
         """
 
-        the_asg = "kubernetes-loadbalancer-%s-%s" % (self.env, stack)
-        the_lb  = "frontend-%s-%s" % (self.env, lb)
+        for lbtype in ['master','frontend','auth','stackstorm']:
 
-        print "%s %s %s" % (action, the_asg, the_lb)
+            the_lb  = "%s-%s-%s" % (lbtype, self.env, lb)
 
-        if action is "attach":
-            resp = self.asgc.attach_load_balancers(AutoScalingGroupName=the_asg, LoadBalancerNames=[ the_lb ])
-            code = resp['ResponseMetadata']['HTTPStatusCode']
-        if action is "detach":
-            asg_info = self.getinfo(the_asg)
-            if the_lb in asg_info['AutoScalingGroups'][0]['LoadBalancerNames']:
-                resp = self.asgc.detach_load_balancers(AutoScalingGroupName=the_asg, LoadBalancerNames=[ the_lb ])
-                code = resp['ResponseMetadata']['HTTPStatusCode']
-            else:
-                print "no lb attached"
-                code = 200
+            the_asgs = []
 
-        if code != 200:
-            print "failed resp: %s" % resp
+            if lbtype == 'master':
+                the_asgs.append("kubernetes-master-%s-%s" % (self.env, stack))
+
+            if lbtype == 'frontend':
+                the_asgs.append("kubernetes-loadbalancer-%s-%s" % (self.env, stack))
+
+            if lbtype == 'stackstorm':
+                the_asgs.append("stackstorm-%s-%s" % (self.env, stack))
+
+            if lbtype == 'auth':
+                the_asgs.append("kubernetes-auth-1-%s-%s" % (self.env, stack))
+                the_asgs.append("kubernetes-auth-2-%s-%s" % (self.env, stack))
+
+            for the_asg in the_asgs:
+
+                print "%s %s %s" % (action, the_asg, the_lb)
+
+                if action is "attach":
+                    resp = self.asgc.attach_load_balancers(AutoScalingGroupName=the_asg, LoadBalancerNames=[ the_lb ])
+                    code = resp['ResponseMetadata']['HTTPStatusCode']
+                if action is "detach":
+                    asg_info = self.getinfo(the_asg)
+                    if the_lb in asg_info['AutoScalingGroups'][0]['LoadBalancerNames']:
+                        resp = self.asgc.detach_load_balancers(AutoScalingGroupName=the_asg, LoadBalancerNames=[ the_lb ])
+                        code = resp['ResponseMetadata']['HTTPStatusCode']
+                    else:
+                        print "no lb attached"
+                        code = 200
+
+                if code != 200:
+                    print "failed resp: %s" % resp
 
     def getlist(self, detail=0):
         if detail == 0:
             #print json.dumps(self.my_asgs, sort_keys=True, indent=2, default=self.json_serial)
             return self.my_asgs
-        else: 
+        else:
             return self.asgc.describe_auto_scaling_groups(AutoScalingGroupNames=self.my_asgs)
-    
+
     def getinfo(self, asg):
         return self.asgc.describe_auto_scaling_groups(AutoScalingGroupNames=[asg])
 
@@ -98,4 +116,3 @@ class ELBMigrate(Action):
             serial = obj.isoformat()
             return serial
         raise TypeError("Type not serializable")
-
