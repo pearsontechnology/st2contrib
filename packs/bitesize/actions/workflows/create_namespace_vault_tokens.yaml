@@ -18,6 +18,14 @@
         rules: "{{rule_read}}"
       on-success: "create_ns_vault_rule_write"
     -
+      name: "stash_read_token"
+      ref: "kubernetes.create_secret"
+      parameters:
+        name: "vault-{{namespace}}-read"
+        value: "{{create_token_read}}"
+        ns: "{{namespace}}"
+      on-success: "create_ns_vault_rule_write"
+    -
       name: "create_ns_vault_rule_write"
       ref: "bitesize.create_ns_vault_rule"
       parameters:
@@ -33,3 +41,11 @@
         name: "{{namespace}}"
         acl_type: "client"
         rules: "{{rule_write}}"
+      on-success: "stash_write_token"
+    -
+      name: "stash_write_token"
+      ref: "kubernetes.create_secret"
+      parameters:
+        name: "vault-{{namespace}}-write"
+        value: "{{create_token_write}}"
+        ns: "{{namespace}}"

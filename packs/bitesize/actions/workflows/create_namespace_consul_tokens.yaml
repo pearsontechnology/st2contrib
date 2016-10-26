@@ -16,6 +16,14 @@
         name: "{{namespace}}"
         acl_type: "client"
         rules: "{{rule_read}}"
+      on-success: "stash_read_token"
+    -
+      name: "stash_read_token"
+      ref: "kubernetes.create_secret"
+      parameters:
+        name: "consul-{{namespace}}-read"
+        value: "{{create_token_read}}"
+        ns: "{{namespace}}"
       on-success: "create_ns_consul_rule_write"
     -
       name: "create_ns_consul_rule_write"
@@ -33,3 +41,11 @@
         name: "{{namespace}}"
         acl_type: "client"
         rules: "{{rule_write}}"
+      on-success: "stash_write_token"
+    -
+      name: "stash_write_token"
+      ref: "kubernetes.create_secret"
+      parameters:
+        name: "consul-{{namespace}}-write"
+        value: "{{create_token_write}}"
+        ns: "{{namespace}}"
