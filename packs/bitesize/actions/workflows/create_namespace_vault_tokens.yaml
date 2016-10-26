@@ -8,44 +8,54 @@
         policy: "read"
       publish:
         rule_read: "{{create_ns_vault_rule_read.stdout}}"
+      on-success: "create_policy_read"
+    -
+      name: "create_policy_read"
+      ref: "vault.set_policy"
+      parameters:
+        name: "{{namespace}}-read"
+        rules: "{{rule_read}}"
       on-success: "create_token_read"
     -
       name: "create_token_read"
       ref: "vault.create_token"
       parameters:
-        name: "{{namespace}}"
-        acl_type: "client"
-        rules: "{{rule_read}}"
-      on-success: "create_ns_vault_rule_write"
+        policies: ["{{namespace}}-read"]
+      on-success: "stash_read_token"
     -
       name: "stash_read_token"
       ref: "kubernetes.create_secret"
       parameters:
         name: "vault-{{namespace}}-read"
-        value: "{{create_token_read}}"
+        value: "{{create_token_read.result}}"
         ns: "{{namespace}}"
       on-success: "create_ns_vault_rule_write"
     -
       name: "create_ns_vault_rule_write"
       ref: "bitesize.create_ns_vault_rule"
       parameters:
-        namespace: "{{namespace}}"
+        namespace: "{{namespace}}-write"
         policy: "write"
       publish:
         rule_write: "{{create_ns_vault_rule_write.stdout}}"
+      on-success: "create_policy_write"
+    -
+      name: "create_policy_write"
+      ref: "vault.set_policy"
+      parameters:
+        name: "{{namespace}}-write"
+        rules: "{{rule_write}}"
       on-success: "create_token_write"
     -
       name: "create_token_write"
       ref: "vault.create_token"
       parameters:
-        name: "{{namespace}}"
-        acl_type: "client"
-        rules: "{{rule_write}}"
+        policies: ["{{namespace}}-write"]
       on-success: "stash_write_token"
     -
       name: "stash_write_token"
       ref: "kubernetes.create_secret"
       parameters:
         name: "vault-{{namespace}}-write"
-        value: "{{create_token_write}}"
+        value: "{{create_token_write.result}}"
         ns: "{{namespace}}"
