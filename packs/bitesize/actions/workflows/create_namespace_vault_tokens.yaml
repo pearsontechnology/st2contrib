@@ -21,13 +21,15 @@
       ref: "vault.create_token"
       parameters:
         policies: ["{{namespace}}-read"]
+      publish:
+        client_token: "{{create_token_read.stdout}}"
       on-success: "stash_read_token"
     -
       name: "stash_read_token"
       ref: "kubernetes.create_secret"
       parameters:
         name: "vault-{{namespace}}-read"
-        value: "{{create_token_read.result}}"
+        value: "{{create_token_read.result.auth.client_token}}"
         ns: "{{namespace}}"
       on-success: "create_ns_vault_rule_write"
     -
@@ -51,11 +53,13 @@
       ref: "vault.create_token"
       parameters:
         policies: ["{{namespace}}-write"]
+      publish:
+        client_token: "{{create_token_write.stdout}}"
       on-success: "stash_write_token"
     -
       name: "stash_write_token"
       ref: "kubernetes.create_secret"
       parameters:
         name: "vault-{{namespace}}-write"
-        value: "{{create_token_write.result}}"
+        value: "{{create_token_write.result.auth.client_token}}"
         ns: "{{namespace}}"
