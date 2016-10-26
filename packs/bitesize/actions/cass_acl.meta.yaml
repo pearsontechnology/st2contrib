@@ -1,0 +1,11 @@
+---
+  name: "cass_acl"
+  runner_type: "mistral-v2"
+  description: "Create a consul token for a cassandra cluster"
+  enabled: true
+  entry_point: "workflows/cass_acl.yaml"
+  pack: "bitesize"
+  parameters:
+    cluster:
+      type: "string"
+      description: "name of cluster"

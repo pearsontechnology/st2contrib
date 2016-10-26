@@ -1,0 +1,35 @@
+---
+  chain:
+    -
+      name: "create_ns_consul_rule_read"
+      ref: "bitesize.create_ns_consul_rule"
+      parameters:
+        namespace: "{{namespace}}"
+        policy: "read"
+      publish:
+        rule_read: "{{create_ns_consul_rule_read.stdout}}"
+      on-success: "create_token_read"
+    -
+      name: "create_token_read"
+      ref: "consul.create_token"
+      parameters:
+        name: "{{namespace}}"
+        acl_type: "client"
+        rules: "{{rule_read}}"
+      on-success: "create_ns_consul_rule_write"
+    -
+      name: "create_ns_consul_rule_write"
+      ref: "bitesize.create_ns_consul_rule"
+      parameters:
+        namespace: "{{namespace}}"
+        policy: "write"
+      publish:
+        rule_write: "{{create_ns_consul_rule.stdout}}"
+      on-success: "create_token_write"
+    -
+      name: "create_token_write"
+      ref: "consul.create_token"
+      parameters:
+        name: "{{namespace}}"
+        acl_type: "client"
+        rules: "{{rule_write}}"

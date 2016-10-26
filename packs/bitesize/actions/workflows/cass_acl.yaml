@@ -1,0 +1,42 @@
+version: '2.0'
+
+bitesize.cass_acl:
+  description: check to see if a consul token already exists and if not create one
+  type: direct
+  input:
+    - cluster
+  output:
+    token: <% $.thetoken %>
+  tasks:
+    list_tokens:
+      action: consul.list_tokens
+      publish:
+        tokens: <% task(list_tokens).result.stdout %>
+      on-success:
+        - check_consul_acl
+    check_consul_acl:
+      action: bitesize.check_consul_acl
+      input:
+        tokens: <% $.tokens %>
+        cluster: <% $.cluster %>
+      publish:
+        thetoken: <% task(check_consul_acl).result.stdout %>
+      on-success:
+        - create_rule: <% task(check_consul_acl).result.result = 'missed' %>
+    create_rule:
+      action: bitesize.create_ns_consul_rule
+      input:
+        namespace: <% $.cluster %>
+        policy: "write"
+      publish:
+        rule: <% task(create_rule).result.stdout %>
+      on-success:
+        - create_token
+    create_token:
+      action: consul.create_token
+      input:
+        name: <% $.cluster %>
+        acl_type: "client"
+        rules: <% $.rule %>
+      publish:
+        thetoken: <% task(create_token).result.result %>
