@@ -10,6 +10,7 @@
     stack_id: "a"
 
     domain: "prsn-dev.io"
+    template_path: "/opt/stackstorm/packs/bitesize/"
 
     cloudformation:
       stack: "cloudformation"
@@ -18,7 +19,6 @@
         VpcId: "vpc-76f69212"
         SubnetId1: "subnet-xxxxxxxx"
         SubnetId2: "subnet-xxxxxxxx"
-        SubnetId3: "subnet-xxxxxxxx"
         AmiId: "ami-xxxxxxxxx"
         SecurityGroupId: "sg-xxxxxxxxx"
         InstanceType: "m4.large"

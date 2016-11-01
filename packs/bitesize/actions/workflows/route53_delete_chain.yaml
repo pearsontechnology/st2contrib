@@ -1,0 +1,8 @@
+---
+  chain:
+    -
+      name: "delete_alias_record"
+      ref: "bitesize.route53_alias"
+      parameters:
+        cmd: "DELETE"
+        payload: "{{payload}}"

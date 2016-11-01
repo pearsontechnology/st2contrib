@@ -1,0 +1,22 @@
+---
+name: "bitesize_mongo_delete"
+pack: "bitesize"
+description: "Check for Mongo cloudformation stacks to delete using kubernetes thirdpartyresource sensor"
+enabled: true
+
+trigger:
+  type: "kubernetes.thirdpartyobject"
+  parameters: {}
+
+criteria:
+  trigger.resource:
+    type: "contains"
+    pattern: "DELETED"
+  trigger.object_kind:
+    type: "equals"
+    pattern: "Mongo"
+
+action:
+  ref: "bitesize.mongo_delete_chain"
+  parameters:
+    payload: "{{trigger}}"

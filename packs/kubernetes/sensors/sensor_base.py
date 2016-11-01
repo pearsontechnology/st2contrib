@@ -88,7 +88,7 @@ class SensorBase(Sensor):
             if 'namespace' in k8s_object['object']['metadata']:
                 namespace = k8s_object['object']['metadata']['namespace']
             uid = k8s_object['object']['metadata']['uid']
-            labels_data = k8s_object['object']['metadata']['labels']
+            labels_data = k8s_object['object']['spec']
         except KeyError:
             msg = 'One of "type", "kind", "name" or "uid" or "labels" ' + \
                   'do not exist in the object. Incoming object=%s' % k8s_object
