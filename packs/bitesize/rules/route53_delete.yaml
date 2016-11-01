@@ -1,0 +1,22 @@
+---
+name: "bitesize_route53_delete"
+pack: "bitesize"
+description: "Check for route53 entries to delete using kubernetes thirdpartyresource sensor"
+enabled: true
+
+trigger:
+  type: "kubernetes.thirdpartyobject"
+  parameters: {}
+
+criteria:
+  trigger.resource:
+    type: "contains"
+    pattern: "DELETED"
+  trigger.object_kind:
+    type: "equals"
+    pattern: "Dns"
+
+action:
+  ref: "bitesize.route53_delete_chain"
+  parameters:
+    payload: "{{trigger}}"

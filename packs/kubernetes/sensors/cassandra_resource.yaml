@@ -1,0 +1,21 @@
+---
+  class_name: "CassandraResource"
+  entry_point: "cassandra_resource.py"
+  description: "Sensor which watches Kubernetes API for new Mongo custom thirdpartyresource objects."
+  trigger_types:
+    -
+      name: "thirdpartyobject"
+      description: "Trigger which contains metadata for thirdpartyobject dispatch."
+      payload_schema:
+        type: "object"
+        properties:
+          resource:
+            type: "obj"
+          name:
+            type: "obj"
+          labels:
+            type: "obj"
+          object_kind:
+            type: "obj"
+          namespace:
+            type: "obj"
