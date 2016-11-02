@@ -26,7 +26,7 @@
       on-success: "stash_read_token"
     -
       name: "stash_read_token"
-      ref: "kubernetes.create_secret"
+      ref: "kubernetes."
       parameters:
         name: "vault-{{namespace}}-read"
         value: "{{create_token_read.result.auth.client_token}}"
@@ -58,7 +58,7 @@
       on-success: "stash_write_token"
     -
       name: "stash_write_token"
-      ref: "kubernetes.create_secret"
+      ref: "kubernetes."
       parameters:
         name: "vault-{{namespace}}-write"
         value: "{{create_token_write.result.auth.client_token}}"
