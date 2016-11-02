@@ -19,7 +19,7 @@
       on-success: "stash_read_token"
     -
       name: "stash_read_token"
-      ref: "kubernetes."
+      ref: "kubernetes.secret_create"
       parameters:
         name: "consul-{{namespace}}-read"
         value: "{{create_token_read.result}}"
@@ -44,7 +44,7 @@
       on-success: "stash_write_token"
     -
       name: "stash_write_token"
-      ref: "kubernetes."
+      ref: "kubernetes.secret_create"
       parameters:
         name: "consul-{{namespace}}-write"
         value: "{{create_token_write.result}}"
