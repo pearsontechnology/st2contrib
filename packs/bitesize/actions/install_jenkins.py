@@ -53,7 +53,7 @@ class UpdateJenkins(Action):
 
         data['metadata']['namespace'] = self.ns
 
-        jenkins_url = self.project + self.domain
+        jenkins_url = self.project + "." + self.domain
 
         data['spec']['rules'][0]['host'] = jenkins_url
 
