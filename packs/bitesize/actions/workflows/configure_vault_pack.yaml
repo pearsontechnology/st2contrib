@@ -4,7 +4,7 @@
         name: "get_stackstorm_vault_token"
         ref: "kubernetes.secret_read"
         parameters:
-            name: "vault-stackstorm"
+            name: "vault-stackstorm-mgmt"
             ns: "kube-system"
         on-success: "write_stackstorm_vault_token_to_config"
         on-failure: "fail"
