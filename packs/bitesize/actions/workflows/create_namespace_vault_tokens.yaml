@@ -40,7 +40,7 @@
             name: "create_ns_vault_rule_write"
             ref: "bitesize.create_ns_vault_rule"
             parameters:
-                namespace: "{{namespace}}-write"
+                namespace: "{{namespace}}"
                 policy: "write"
             publish:
               rule_write: "{{create_ns_vault_rule_write.stdout}}"
