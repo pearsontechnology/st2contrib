@@ -1,51 +1,62 @@
 ---
-  chain:
-    -
-      name: "create_ns_consul_rule_read"
-      ref: "bitesize.create_ns_consul_rule"
-      parameters:
-        namespace: "{{namespace}}"
-        policy: "read"
-      publish:
-        rule_read: "{{create_ns_consul_rule_read.stdout}}"
-      on-success: "create_token_read"
-    -
-      name: "create_token_read"
-      ref: "consul.create_token"
-      parameters:
-        name: "{{namespace}}"
-        acl_type: "client"
-        rules: "{{rule_read}}"
-      on-success: "stash_read_token"
-    -
-      name: "stash_read_token"
-      ref: "kubernetes.secret_create"
-      parameters:
-        name: "consul-{{namespace}}-read"
-        value: "{{create_token_read.result}}"
-        ns: "{{namespace}}"
-      on-success: "create_ns_consul_rule_write"
-    -
-      name: "create_ns_consul_rule_write"
-      ref: "bitesize.create_ns_consul_rule"
-      parameters:
-        namespace: "{{namespace}}"
-        policy: "write"
-      publish:
-        rule_write: "{{create_ns_consul_rule_write.stdout}}"
-      on-success: "create_token_write"
-    -
-      name: "create_token_write"
-      ref: "consul.create_token"
-      parameters:
-        name: "{{namespace}}"
-        acl_type: "client"
-        rules: "{{rule_write}}"
-      on-success: "stash_write_token"
-    -
-      name: "stash_write_token"
-      ref: "kubernetes.secret_create"
-      parameters:
-        name: "consul-{{namespace}}-write"
-        value: "{{create_token_write.result}}"
-        ns: "{{namespace}}"
+    chain:
+        -
+            name: "create_ns_consul_rule_read"
+            ref: "bitesize.create_ns_consul_rule"
+            parameters:
+                namespace: "{{namespace}}"
+                policy: "read"
+            publish:
+                rule_read: "{{create_ns_consul_rule_read.stdout}}"
+            on-success: "create_token_read"
+            on-failure: "fail"
+        -
+            name: "create_token_read"
+            ref: "consul.create_token"
+            parameters:
+                name: "{{namespace}}"
+                acl_type: "client"
+                rules: "{{rule_read}}"
+            on-success: "stash_read_token"
+            on-failure: "fail"
+        -
+            name: "stash_read_token"
+            ref: "kubernetes.secret_create"
+            parameters:
+                name: "consul-{{namespace}}-read"
+                value: "{{create_token_read.result}}"
+                ns: "{{namespace}}"
+            on-success: "create_ns_consul_rule_write"
+            on-failure: "fail"
+        -
+            name: "create_ns_consul_rule_write"
+            ref: "bitesize.create_ns_consul_rule"
+            parameters:
+                namespace: "{{namespace}}"
+                policy: "write"
+            publish:
+                rule_write: "{{create_ns_consul_rule_write.stdout}}"
+            on-success: "create_token_write"
+            on-failure: "fail"
+        -
+            name: "create_token_write"
+            ref: "consul.create_token"
+            parameters:
+                name: "{{namespace}}"
+                acl_type: "client"
+                rules: "{{rule_write}}"
+            on-success: "stash_write_token"
+            on-failure: "fail"
+        -
+            name: "stash_write_token"
+            ref: "kubernetes.secret_create"
+            parameters:
+                name: "consul-{{namespace}}-write"
+                value: "{{create_token_write.result}}"
+                ns: "{{namespace}}"
+            on-failure: "fail"
+        -
+            name: "fail"
+            ref: "core.local"
+            parameters:
+                cmd: "echo fail"

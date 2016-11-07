@@ -1,65 +1,78 @@
 ---
   chain:
-    -
-      name: "create_ns_vault_rule_read"
-      ref: "bitesize.create_ns_vault_rule"
-      parameters:
-        namespace: "{{namespace}}"
-        policy: "read"
-      publish:
-        rule_read: "{{create_ns_vault_rule_read.stdout}}"
-      on-success: "create_policy_read"
-    -
-      name: "create_policy_read"
-      ref: "vault.set_policy"
-      parameters:
-        name: "{{namespace}}-read"
-        rules: "{{rule_read}}"
-      on-success: "create_token_read"
-    -
-      name: "create_token_read"
-      ref: "vault.create_token"
-      parameters:
-        policies: ["{{namespace}}-read"]
-      publish:
-        client_token: "{{create_token_read.stdout}}"
-      on-success: "stash_read_token"
-    -
-      name: "stash_read_token"
-      ref: "kubernetes.secret_create"
-      parameters:
-        name: "vault-{{namespace}}-read"
-        value: "{{create_token_read.result.auth.client_token}}"
-        ns: "{{namespace}}"
-      on-success: "create_ns_vault_rule_write"
-    -
-      name: "create_ns_vault_rule_write"
-      ref: "bitesize.create_ns_vault_rule"
-      parameters:
-        namespace: "{{namespace}}-write"
-        policy: "write"
-      publish:
-        rule_write: "{{create_ns_vault_rule_write.stdout}}"
-      on-success: "create_policy_write"
-    -
-      name: "create_policy_write"
-      ref: "vault.set_policy"
-      parameters:
-        name: "{{namespace}}-write"
-        rules: "{{rule_write}}"
-      on-success: "create_token_write"
-    -
-      name: "create_token_write"
-      ref: "vault.create_token"
-      parameters:
-        policies: ["{{namespace}}-write"]
-      publish:
-        client_token: "{{create_token_write.stdout}}"
-      on-success: "stash_write_token"
-    -
-      name: "stash_write_token"
-      ref: "kubernetes.secret_create"
-      parameters:
-        name: "vault-{{namespace}}-write"
-        value: "{{create_token_write.result.auth.client_token}}"
-        ns: "{{namespace}}"
+        -
+            name: "create_ns_vault_rule_read"
+            ref: "bitesize.create_ns_vault_rule"
+            parameters:
+                namespace: "{{namespace}}"
+                policy: "read"
+            publish:
+                rule_read: "{{create_ns_vault_rule_read.stdout}}"
+            on-success: "create_policy_read"
+            on-failure: "fail"
+        -
+            name: "create_policy_read"
+            ref: "vault.set_policy"
+            parameters:
+                name: "{{namespace}}-read"
+                rules: "{{rule_read}}"
+            on-success: "create_token_read"
+            on-failure: "fail"
+        -
+            name: "create_token_read"
+            ref: "vault.create_token"
+            parameters:
+                policies: ["{{namespace}}-read"]
+            publish:
+                client_token: "{{create_token_read.stdout}}"
+            on-success: "stash_read_token"
+            on-failure: "fail"
+        -
+            name: "stash_read_token"
+            ref: "kubernetes.secret_create"
+            parameters:
+                name: "vault-{{namespace}}-read"
+                value: "{{create_token_read.result.auth.client_token}}"
+                ns: "{{namespace}}"
+            on-success: "create_ns_vault_rule_write"
+            on-failure: "fail"
+        -
+            name: "create_ns_vault_rule_write"
+            ref: "bitesize.create_ns_vault_rule"
+            parameters:
+                namespace: "{{namespace}}-write"
+                policy: "write"
+            publish:
+              rule_write: "{{create_ns_vault_rule_write.stdout}}"
+            on-success: "create_policy_write"
+            on-failure: "fail"
+        -
+            name: "create_policy_write"
+            ref: "vault.set_policy"
+            parameters:
+                name: "{{namespace}}-write"
+                rules: "{{rule_write}}"
+            on-success: "create_token_write"
+            on-failure: "fail"
+        -
+            name: "create_token_write"
+            ref: "vault.create_token"
+            parameters:
+                policies: ["{{namespace}}-write"]
+            publish:
+                client_token: "{{create_token_write.stdout}}"
+            on-success: "stash_write_token"
+            on-failure: "fail"
+        -
+            name: "stash_write_token"
+            ref: "kubernetes.secret_create"
+            parameters:
+                name: "vault-{{namespace}}-write"
+                value: "{{create_token_write.result.auth.client_token}}"
+                ns: "{{namespace}}"
+            on-failure: "fail"
+        -
+            name: "fail"
+            ref: "core.local"
+            parameters:
+                cmd: "echo fail"
