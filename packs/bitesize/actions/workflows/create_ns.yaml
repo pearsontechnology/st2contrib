@@ -6,6 +6,20 @@
             parameters:
                 ns: "{{ns}}"
                 suffix: "{{suffix}}"
+            on-success: "consul_tokens"
+            on-failure: "fail"
+        -
+            name: "consul_tokens"
+            ref: "bitesize.create_namespace_consul_tokens"
+            parameters:
+                namespace: "{{ns}}-{{suffix}}"
+            on-success: "vault_tokens"
+            on-failure: "fail"
+        -
+            name: "vault_tokens"
+            ref: "bitesize.create_namespace_vault_tokens"
+            parameters:
+                namespace: "{{ns}}-{{suffix}}"
             on-success: "label"
             on-failure: "fail"
         -
