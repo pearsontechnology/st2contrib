@@ -47,8 +47,9 @@ class ThirdPartyResource(Sensor):
                 self._log.exception(msg)
                 sys.exit(1)
             else:
-                self._log.debug('Triggering Dispatch Now')
-                self._sensor_service.dispatch(trigger=self.TRIGGER_REF, payload=trigger_payload)
+		if 'grafana' in trigger_payload and 'dev' not in self_config['domain']:
+                    self._log.debug('Triggering Dispatch Now')
+                    self._sensor_service.dispatch(trigger=self.TRIGGER_REF, payload=trigger_payload)
 
     def _get_trigger_payload_from_line(self, line):
         k8s_object = self._fix_utf8_enconding_and_eval(line)
