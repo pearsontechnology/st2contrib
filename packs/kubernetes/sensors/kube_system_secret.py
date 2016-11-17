@@ -7,18 +7,16 @@ from requests.auth import HTTPBasicAuth
 
 from st2reactor.sensor.base import Sensor
 
-
-class ThirdPartyResource(Sensor):
+class KubeSystemSecret(Sensor):
     def __init__(self, sensor_service, config=None):
-        super(ThirdPartyResource, self).__init__(sensor_service=sensor_service,
-                                                 config=config)
+        super(KubeSystemSecret, self).__init__(sensor_service=sensor_service, config=config)
         self._log = self._sensor_service.get_logger(__name__)
-        self.TRIGGER_REF = 'kubernetes.thirdpartyobject'
+        self.TRIGGER_REF = 'kubernetes.secret'
         self.client = None
 
     def setup(self):
         try:
-            extension = self._config['extension_url']
+            extension = "/api/v1/watch/namespaces/kube-system/secrets"
             KUBERNETES_API_URL = self._config['kubernetes_api_url'] + extension
             user = self._config['user']
             password = self._config['password']
@@ -32,7 +30,7 @@ class ThirdPartyResource(Sensor):
                                    verify=verify, stream=True)
 
     def run(self):
-        self._log.debug('Watch Kubernetes for thirdpartyresource information')
+        self._log.debug('Watch Kubernetes for new secrets')
         r = self.client
         lines = r.iter_lines()
         # Save the first line for later or just skip it
@@ -47,8 +45,11 @@ class ThirdPartyResource(Sensor):
                 self._log.exception(msg)
                 sys.exit(1)
             else:
-                self._log.debug('Triggering Dispatch Now')
-                self._sensor_service.dispatch(trigger=self.TRIGGER_REF, payload=trigger_payload)
+                if trigger_payload == 0:
+                    pass
+                else:
+                    self._log.debug('Triggering Dispatch Now')
+                    self._sensor_service.dispatch(trigger=self.TRIGGER_REF, payload=trigger_payload)
 
     def _get_trigger_payload_from_line(self, line):
         k8s_object = self._fix_utf8_enconding_and_eval(line)
@@ -70,33 +71,24 @@ class ThirdPartyResource(Sensor):
             object_kind = k8s_object['object']['kind']
             name = k8s_object['object']['metadata']['name']
             namespace = k8s_object['object']['metadata']['namespace']
-            uid = k8s_object['object']['metadata']['uid']
-            labels_data = k8s_object['object']['metadata']['labels']
         except KeyError:
-            msg = 'One of "type", "kind", "name", "namespace" or "uid" or "labels" ' + \
+            msg = 'One of "type", "kind", "name", "namespace" ' + \
                   'do not exist in the object. Incoming object=%s' % k8s_object
             self._log.exception(msg)
-            raise
+            #raise
+            return 0
         else:
-            payload = self._build_a_trigger(
-		                resource_type=resource_type,
-		                name=name,
-		                labels=labels_data,
-		                namespace=namespace,
-		                object_kind=object_kind,
-		                uid=uid) if not (
-			                 'grafana' in str(k8s_object) and 'dev' in self._config['domain']) else None
+            payload = self._build_a_trigger(resource_type=resource_type, object_kind=object_kind, name=name, namespace=namespace)
             self._log.debug('Trigger payload: %s.' % payload)
+            self._log.info('Trigger payload: %s.' % payload)
             return payload
 
-    def _build_a_trigger(self, resource_type, name, labels, namespace, object_kind, uid):
+    def _build_a_trigger(self, resource_type, object_kind, name, namespace):
         payload = {
-            'resource': resource_type,
-            'name': name,
-            'labels': labels,
-            'namespace': namespace,
+            'resource_type': resource_type,
             'object_kind': object_kind,
-            'uid': uid
+            'name': name,
+            'namespace': namespace
         }
 
         return payload

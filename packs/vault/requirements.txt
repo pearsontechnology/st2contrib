@@ -1,1 +1,1 @@
-git+git://github.com/ianunruh/hvac.git#hvac
+git+git://github.com/ianunruh/hvac.git@v0.2.16

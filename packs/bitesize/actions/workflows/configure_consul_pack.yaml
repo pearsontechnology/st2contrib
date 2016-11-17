@@ -1,0 +1,21 @@
+---
+  chain:
+    -
+        name: "get_stackstorm_consul_token"
+        ref: "kubernetes.secret_read"
+        parameters:
+            name: "consul-stackstorm-mgmt"
+            ns: "kube-system"
+        on-success: "write_stackstorm_consul_token_to_config"
+        on-failure: "fail"
+    -
+        name: "write_stackstorm_consul_token_to_config"
+        ref: "core.local_sudo"
+        parameters:
+            cmd: "sed -i '/^token:/c\\token: {{get_stackstorm_consul_token.stdout}}' /opt/stackstorm/packs/consul/config.yaml"
+        on-failure: "fail"
+    -
+        name: "fail"
+        ref: "core.local"
+        parameters:
+            cmd: "echo fail"

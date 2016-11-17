@@ -1,0 +1,21 @@
+---
+  chain:
+    -
+        name: "get_stackstorm_vault_token"
+        ref: "kubernetes.secret_read"
+        parameters:
+            name: "vault-stackstorm-mgmt"
+            ns: "kube-system"
+        on-success: "write_stackstorm_vault_token_to_config"
+        on-failure: "fail"
+    -
+        name: "write_stackstorm_vault_token_to_config"
+        ref: "core.local_sudo"
+        parameters:
+            cmd: "sed -i '/^token:/c\\token: {{get_stackstorm_vault_token.stdout}}' /opt/stackstorm/packs/vault/config.yaml"
+        on-failure: "fail"
+    -
+        name: "fail"
+        ref: "core.local"
+        parameters:
+            cmd: "echo fail"
