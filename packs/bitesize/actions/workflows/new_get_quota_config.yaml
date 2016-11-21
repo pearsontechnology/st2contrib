@@ -5,11 +5,17 @@ bitesize.new_get_quota_config:
   input:
     - project
     - namespace
+    - pods
+    - services
+    - replicationcontrollers
+    - persistentvolumeclaims
+    - secrets
+    - resourcequotas
   tasks:
     get_globals:
       action: consul.get
       input:
-        key: "bitesize/defaults/quotas"
+        key: "bitesize/defaults/quota"
         recurse: True
       publish:
         gquota: <% task(get_globals).result.result %>
@@ -18,7 +24,7 @@ bitesize.new_get_quota_config:
     get_project:
       action: consul.get
       input:
-        key: "bitesize/<% $.project %>/quotas"
+        key: "bitesize/<% $.project %>/defaults/quota"
         recurse: True
       publish:
         pquota: <% task(get_project).result.result %>
@@ -27,7 +33,7 @@ bitesize.new_get_quota_config:
     get_locals:
       action: consul.get
       input:
-        key: "bitesize/<% $.project %>/<% $.namespace %>/quotas"
+        key: "bitesize/<% $.project %>/<% $.namespace %>/quota"
         recurse: True
       publish:
         lquota: <% task(get_locals).result.result %>
@@ -36,6 +42,12 @@ bitesize.new_get_quota_config:
     layer_quotas:
       action: bitesize.new_layer_quotas
       input:
+        pods: <% $.pods %>
+        services: <% $.services %>
+        replicationcontrollers: <% $.replicationcontrollers %>
+        persistentvolumeclaims: <% $.persistentvolumeclaims %>
+        secrets: <% $.secrets %>
+        resourcequotas: <% $.resourcequotas %>
         lquota: <% dict(data=>$.lquota) %>
         pquota: <% dict(data=>$.pquota) %>
         bquota: <% dict(data=>$.gquota) %>

@@ -11,3 +11,21 @@ parameters:
     type: object
   bquota:
     type: object
+  pods:
+    type: "string"
+    description: "max number of pods"
+  services:
+    type: "string"
+    description: "max number of services"
+  replicationcontrollers:
+    type: "string"
+    description: "max number of replication controllers"
+  persistentvolumeclaims:
+    type: "string"
+    description: "max number of persistent volume claims"
+  secrets:
+    type: "string"
+    description: "max number of secrets"
+  resourcequotas:
+    type: "string"
+    description: "max number of resource quotas"

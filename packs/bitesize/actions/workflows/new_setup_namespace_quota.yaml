@@ -3,6 +3,7 @@ bitesize.new_setup_namespace_quota:
   description: generate a quota template and apply to a namespace
   type: direct
   input:
+    - project
     - namespace
     - pods
     - services
@@ -11,9 +12,10 @@ bitesize.new_setup_namespace_quota:
     - secrets
     - resourcequotas
   tasks:
-    create_ns_quota_template:
-      action: bitesize.new_create_ns_quota_template
+    get_quota_config:
+      action: bitesize.new_get_quota_config
       input:
+        project: <% $.project %>
         namespace: <% $.namespace %>
         pods: <% $.pods %>
         services: <% $.services %>
@@ -21,6 +23,15 @@ bitesize.new_setup_namespace_quota:
         persistentvolumeclaims: <% $.persistentvolumeclaims %>
         secrets: <% $.secrets %>
         resourcequotas: <% $.resourcequotas %>
+      publish:
+        quotas: <% task(get_quota_config).result.quotas %>
+      on-success:
+        - create_ns_quota_template
+    create_ns_quota_template:
+      action: bitesize.new_create_ns_quota_template
+      input:
+        namespace: <% $.namespace %>
+        quotas: <% $.quotas %>
       publish:
         quotatemplate: <% task(create_ns_quota_template).result.result %>
       on-success:

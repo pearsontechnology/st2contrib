@@ -11,6 +11,9 @@
       description: "namespace to apply quotas to"
       required: true
       position: 0
+    quotas:
+      type: "object"
+      description: "max number of pods"
     pods:
       type: "string"
       description: "max number of pods"

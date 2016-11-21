@@ -1,7 +1,6 @@
 import json
 
 from st2actions.runners.pythonrunner import Action
-from lib import k8s
 
 quotatemplate = {
     "kind": "ResourceQuota",
@@ -29,12 +28,18 @@ class CreateNSQuotaTemplate(Action):
 
     def run(self, namespace, **kwargs):
 
+        if "quotas" in kwargs:
+          allquotas = kwargs['quotas']
+
         myquotas = quotatemplate
         myspec   = spectemplate
         myquotas['metadata']['namespace'] = namespace
         myquotas['spec'] = myspec['spec']
 
+        # individual spec get priority over quota list
         for key in myspec['spec']['hard']:
+            if allquotas and key in allquotas and allquotas[key] != None:
+                myspec['spec']['hard'][key] = allquotas[key]
             if key in kwargs and kwargs[key] != None:
                 myspec['spec']['hard'][key] = kwargs[key]
 

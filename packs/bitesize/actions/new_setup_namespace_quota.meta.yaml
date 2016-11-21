@@ -6,11 +6,14 @@
   enabled: true
   entry_point: "workflows/new_setup_namespace_quota.yaml"
   parameters:
+    project:
+      type: "string"
+      description: ""
+      required: true
     namespace:
       type: "string"
       description: "namespace to apply quotas to"
       required: true
-      position: 0
     pods:
       type: "string"
       description: "max number of pods"

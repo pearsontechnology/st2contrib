@@ -16,7 +16,7 @@ class LayerQuotas(Action):
 
     return data
 
-  def run(self, lquota=None, pquota=None, bquota=None):
+  def run(self, lquota=None, pquota=None, bquota=None, **kwargs):
 
     output = {}
     ldata = {}
@@ -32,12 +32,18 @@ class LayerQuotas(Action):
     if bquota['data'] is not None:
       bdata = self._getkv(bquota['data'])
 
-    print json.dumps(bdata, sort_keys=True, indent=2)
-    print json.dumps(pdata, sort_keys=True, indent=2)
-    print json.dumps(ldata, sort_keys=True, indent=2)
+    for k, v in kwargs.items(): 
+      if v == None:
+        del kwargs[k]
+
+    #print json.dumps(bdata, sort_keys=True, indent=2)
+    #print json.dumps(pdata, sort_keys=True, indent=2)
+    #print json.dumps(ldata, sort_keys=True, indent=2)
+    #print json.dumps(kwargs, sort_keys=True, indent=2)
 
     output = bdata.copy()
     output.update(pdata)
     output.update(ldata)
+    output.update(kwargs)
 
-    return (True, json.dumps(output))
+    return (True, output)
