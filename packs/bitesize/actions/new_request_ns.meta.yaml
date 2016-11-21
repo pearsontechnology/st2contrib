@@ -1,0 +1,26 @@
+---
+  name: "new_request_ns"
+  runner_type: "mistral-v2"
+  enabled: true
+  description: "Request a new namespace"
+  entry_point: "workflows/new_request_ns.yaml"
+  pack: "bitesize"
+  parameters:
+    project:
+      type: "string"
+      description: "project name"
+      required: true
+    ns_list:
+      type: "array"
+      description: "namespace suffix list (comma delimited)"
+      required: true
+    gitrequired:
+      type: "boolean"
+      description: "should jenkins be setup?"
+      required: true
+    gitrepo:
+      type: "string"
+      description: "git repo (ssh connection string) to use for jenkins. This is where .bitesize configuration files are stored. will be ignored if 'gitrequired' is false"
+    email:
+      type: "string"
+      description: "email address for notification upon completion"

@@ -1,0 +1,13 @@
+name: new_layer_quotas
+pack: "bitesize"
+runner_type: run-python
+description: "layer local, project and global quotas"
+enabled: true
+entry_point: "new_layer_quotas.py"
+parameters:
+  lquota:
+    type: object
+  pquota:
+    type: object
+  bquota:
+    type: object

@@ -1,0 +1,66 @@
+import os
+import json
+import jinja2
+import string
+
+from jinja2 import Template
+from jinja2 import Environment, PackageLoader
+
+
+from st2actions.runners.pythonrunner import Action
+
+class UpdateJenkins(Action):
+
+  def _passgen(self):
+    length = 16
+    chars = string.ascii_uppercase + string.digits + string.ascii_lowercase
+    password = ''
+    for i in range(length):
+        password += chars[ord(os.urandom(1)) % len(chars)]
+    return password
+
+
+  def run(self, namespace, templatedir, private_key, jenkins_host, jenkins_admin, jenkins_version, gitrepo):
+
+    allvars = {}
+    output = {}
+
+    templateLoader = jinja2.FileSystemLoader( searchpath=templatedir )
+    templateEnv = jinja2.Environment( autoescape=False, loader=templateLoader , lstrip_blocks=True, trim_blocks=True)
+    templateEnv.filters['jsonify'] = json.dumps
+
+# "{{git_private_key}}\n"
+# "{{jenkins_admin_password}}"
+# "{{jenkins_admin_user}}"
+# "{{jenkins_host}}",
+# "{{jenkins_image}}",
+# "{{namespace}}"
+# "{{seed_jobs_repo}}"
+
+    with open(private_key, 'r') as keyfile:
+        data = keyfile.read()
+
+    allvars['namespace'] = namespace
+    allvars['jenkins_admin_user'] = jenkins_admin
+    allvars['jenkins_host'] = jenkins_host
+    allvars['jenkins_version'] = jenkins_version 
+    allvars['seed_jobs_repo'] = gitrepo
+    allvars['jenkins_admin_password'] = self._passgen()
+    allvars['git_private_key'] = data
+
+    #template = templateEnv.get_template("deployment.json")
+    #output['dep'] = template.render( allvars )
+    #template = templateEnv.get_template("ingress.json")
+    #output['ing'] = template.render( allvars )
+    template = templateEnv.get_template("svc.json")
+    #print type(template)
+    output['svc'] = template.render( allvars ).replace('\n', '')
+    print type(output['svc'])
+    print output['svc']
+
+    #return json.dumps(output)
+    #print type(output)
+    #print type(output['svc'])
+    #return output
+    #output = output.replace('\n', '')
+    print output

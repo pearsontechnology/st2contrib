@@ -1,0 +1,74 @@
+## namespace setup
+# create_ns
+# create consul/vault tokens
+# update metadata
+# if jenkins, setup jenkins in namespace
+# setup quota
+
+version: '2.0'
+bitesize.new_create_ns:
+  description: take a project or namespace name and set the namespaces up
+  type: direct
+  input:
+    - project
+    - namespace
+  tasks:
+    get_current_date:
+      action: core.local
+      input:
+        cmd: "date +%c"
+      publish:
+        current_date: <% task(get_current_date).result.stdout %>
+      on-success:
+        - create_ns_template
+    create_ns_template:
+      action: bitesize.new_create_ns_template
+      input:
+        project: <% $.project %>
+        namespace: <% $.namespace %>
+      publish:
+        ns_template: <% task(create_ns_template).result.result %>
+      on-success:
+        - create_ns
+    create_ns:
+      action: kubernetes.createCoreV1Namespace
+      input:
+        body: <% $.ns_template %>
+      on-success:
+        - setup_jenkins: <% $.namespace =~ '-jnk' %>
+        - setup_consul: <% $.namespace !~ '-jnk' %>
+    setup_jenkins:
+      action: bitesize.new_setup_jenkins
+      input:
+        namespace: <% $.namespace %>
+        gitrepo: <% $.gitrepo %>
+      on-success:
+        - setup_quota
+    setup_consul:
+      action: bitesize.new_create_namespace_consul_tokens
+      input:
+        namespace: <% $.namespace %>
+      on-success:
+        - setup_vault
+    setup_vault:
+      action: bitesize.new_create_namespace_vault_tokens
+      input:
+        namespace: <% $.namespace %>
+      on-success:
+        - setup_quota
+    setup_quota:
+      action: bitesize.new_setup_namespace_quota
+      input:
+        namespace: <% $.namespace %>
+      on-success:
+        - delete_unapproved
+    delete_unapproved:
+      action: consul.delete
+      input:
+        key: "bitesize/<% $.project %>/<% $.namespace %>/unapproved"
+      on-complete:
+        - notify_customer
+    notify_customer:
+      action: core.local
+        input:
+          cmd: echo done

@@ -1,0 +1,14 @@
+---
+  name: "new_create_ns"
+  runner_type: "mistral-v2"
+  description: "Setup kubernetes namespace once approved"
+  enabled: true
+  entry_point: "workflows/new_create_ns.yaml"
+  pack: "bitesize"
+  parameters:
+    project:
+      type: "string"
+      description: "project name"
+    namespace:
+      type: "string"
+      description: "namespace to setup"

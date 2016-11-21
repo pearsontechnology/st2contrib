@@ -1,0 +1,43 @@
+version: '2.0'
+bitesize.new_get_quota_config:
+  description: request quota defaults from consul
+  type: direct
+  input:
+    - project
+    - namespace
+  tasks:
+    get_globals:
+      action: consul.get
+      input:
+        key: "bitesize/defaults/quotas"
+        recurse: True
+      publish:
+        gquota: <% task(get_globals).result.result %>
+      on-complete:
+        - get_project
+    get_project:
+      action: consul.get
+      input:
+        key: "bitesize/<% $.project %>/quotas"
+        recurse: True
+      publish:
+        pquota: <% task(get_project).result.result %>
+      on-complete:
+        - get_locals
+    get_locals:
+      action: consul.get
+      input:
+        key: "bitesize/<% $.project %>/<% $.namespace %>/quotas"
+        recurse: True
+      publish:
+        lquota: <% task(get_locals).result.result %>
+      on-complete:
+        - layer_quotas
+    layer_quotas:
+      action: bitesize.new_layer_quotas
+      input:
+        lquota: <% dict(data=>$.lquota) %>
+        pquota: <% dict(data=>$.pquota) %>
+        bquota: <% dict(data=>$.gquota) %>
+      publish:
+        quotas: <% task(layer_quotas).result.result %>

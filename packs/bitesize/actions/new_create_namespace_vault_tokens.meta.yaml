@@ -1,0 +1,11 @@
+---
+  name: "new_create_namespace_vault_tokens"
+  runner_type: "action-chain"
+  description: "Create read and write vault tokens for a newly created bitesize namespace"
+  enabled: true
+  entry_point: "workflows/new_create_namespace_vault_tokens.yaml"
+  pack: "bitesize"
+  parameters:
+    namespace:
+      type: "string"
+      description: "namespace"

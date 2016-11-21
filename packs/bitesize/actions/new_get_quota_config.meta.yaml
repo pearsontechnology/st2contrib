@@ -1,0 +1,14 @@
+---
+  name: "new_get_quota_config"
+  runner_type: "mistral-v2"
+  description: "Look for global, project and namespace quotas, return defaults if none exist"
+  enabled: true
+  entry_point: "workflows/new_get_quota_config.yaml"
+  pack: "bitesize"
+  parameters:
+    project:
+      type: "string"
+      description: "project name"
+    namespace:
+      type: "string"
+      description: "namespace to setup"

@@ -1,0 +1,107 @@
+version: '2.0'
+bitesize.new_setup_jenkins:
+  description: setup jenkins
+  type: direct
+  input:
+    - project
+    - namespace
+    - gitrepo
+  tasks:
+    random_dir:
+      action: core.local
+      input:
+        cmd: "echo $$"
+      publish:
+        jenkdir: "/tmp/jenkins.<% task(random_dir).result.stdout %>"
+      on-success:
+        - testing
+    testing:
+      action: core.local
+      input:
+        cmd: "echo <% env() %>"
+      on-success:
+        - get_jenkins
+    get_jenkins:
+      action: git.clone
+      input:
+        destination: <% $.jenkdir %>
+        source: "git@github.com:pearsontechnology/kubernetes-charts.git"
+        hosts: "localhost"
+        ref: "bite-1162"
+      on-success:
+        - create_ssh_key
+    create_ssh_key:
+      action: core.local
+      input:
+        cwd: <% $.jenkdir %>
+        cmd: ssh-keygen -b 2048 -C "<% $.project %> jenkins" -f <% $.project %>-key -q -N ''
+      publish:
+        private_key: "<% $.jenkdir %>/<% $.project %>-key"
+        public_key: "<% $.jenkdir %>/<% $.project %>-key.pub"
+      on-success:
+        - get_default_domain
+    get_default_domain:
+      action: consul.get
+      input:
+        key: "bitesize/defaults/defaultdomain"
+      publish: 
+        default_domain: <% coalesce(task(get_default_domain).result.result, "prsn-dev.io") %>
+      on-success:
+        - get_jenkins_version
+    get_jenkins_version:
+      action: consul.get
+      input:
+        key: "bitesize/defaults/jenkinsversion"
+      publish: 
+        jenkins_version: <% coalesce(task(get_default_domain).result.result, "3.4.28") %>
+      on-success:
+        - update_jenkins
+    update_jenkins:
+      action: bitesize.new_update_jenkins
+      input:
+        templatedir: "<% $.jenkdir %>/jenkins/config"
+        namespace: <% $.namespace %>
+        private_key: <% $.private_key %>
+        jenkins_host: "<% $.project %>.<% $.default_domain %>"
+        jenkins_admin: "admin"
+        jenkins_version: <% $.jenkins_version %>
+        gitrepo: <% $.gitrepo %>
+      publish:
+        apt_svc_config: <% task(update_jenkins).result.result.apt %>
+        jnk_svc_config: <% task(update_jenkins).result.result.jnk %>
+        jnk_ing_config: <% task(update_jenkins).result.result.ing %>
+        jnk_dep_config: <% task(update_jenkins).result.result.dep %>
+      on-success:
+        - delete_tmp_dir
+    delete_tmp_dir:
+      action: core.local
+      input:
+        cmd: "rm -rf <% $.jenkdir %>"
+      on-success:
+        - create_apt_svc
+    create_apt_svc:
+      action: kubernetes.createCoreV1NamespacedService
+      input:
+        namespace: <% $.namespace %>
+        body: <% $.apt_svc_config %>
+      on-success:
+        - create_jnk_svc
+    create_jnk_svc:
+      action: kubernetes.createCoreV1NamespacedService
+      input:
+        namespace: <% $.namespace %>
+        body: <% $.jnk_svc_config %>
+      on-success:
+        - create_ing
+    create_ing:
+      action: kubernetes.createExtensionsV1beta1NamespacedIngress
+      input:
+        namespace: <% $.namespace %>
+        body: <% $.jnk_ing_config %>
+      on-success:
+        - create_dep
+    create_dep:
+      action: kubernetes.createExtensionsV1beta1NamespacedDeployment
+      input:
+        namespace: <% $.namespace %>
+        body: <% $.jnk_dep_config %>

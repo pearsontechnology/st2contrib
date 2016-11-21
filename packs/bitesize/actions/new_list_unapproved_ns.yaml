@@ -1,0 +1,7 @@
+---
+  name: "new_list_unapproved_ns"
+  runner_type: "action-chain"
+  description: "get a list of unnaproved namespaces"
+  enabled: true
+  entry_point: "workflows/new_list_unapproved_ns.yaml"
+  pack: "bitesize"

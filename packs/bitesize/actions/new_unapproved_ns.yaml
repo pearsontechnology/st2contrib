@@ -1,0 +1,14 @@
+---
+  name: "new_unapproved_ns"
+  runner_type: "run-python"
+  description: "add unapproved namespaces to the datastore for approval"
+  enabled: true
+  entry_point: "new_unapproved_ns.py"
+  pack: "bitesize"
+  parameters:
+    project:
+      type: "string"
+    ns_list:
+      type: "array"
+    gitrequired:
+      type: "boolean"

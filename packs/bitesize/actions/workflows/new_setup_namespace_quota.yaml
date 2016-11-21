@@ -1,0 +1,32 @@
+version: '2.0'
+bitesize.new_setup_namespace_quota:
+  description: generate a quota template and apply to a namespace
+  type: direct
+  input:
+    - namespace
+    - pods
+    - services
+    - replicationcontrollers
+    - persistentvolumeclaims
+    - secrets
+    - resourcequotas
+  tasks:
+    create_ns_quota_template:
+      action: bitesize.new_create_ns_quota_template
+      input:
+        namespace: <% $.namespace %>
+        pods: <% $.pods %>
+        services: <% $.services %>
+        replicationcontrollers: <% $.replicationcontrollers %>
+        persistentvolumeclaims: <% $.persistentvolumeclaims %>
+        secrets: <% $.secrets %>
+        resourcequotas: <% $.resourcequotas %>
+      publish:
+        quotatemplate: <% task(create_ns_quota_template).result.result %>
+      on-success:
+        - create_quota
+    create_quota:
+      action: kubernetes.createCoreV1NamespacedResourceQuota
+      input:
+        namespace: <% $.namespace %>
+        body: <% $.quotatemplate %>

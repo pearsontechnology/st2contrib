@@ -1,0 +1,13 @@
+---
+  name: "new_create_ns_template"
+  runner_type: "run-python"
+  description: "Create namespace template for use with kubernetes"
+  enabled: true
+  entry_point: "new_create_ns_template.py"
+  pack: "bitesize"
+  parameters:
+    project:
+      type: "string"
+    namespace:
+      type: "string"
+

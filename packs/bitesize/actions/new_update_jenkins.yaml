@@ -1,0 +1,29 @@
+---
+  name: "new_update_jenkins"
+  entry_point: "new_update_jenkins.py"
+  pack: "bitesize"
+  description: "Create jenkins configuration"
+  enabled: true
+  runner_type: "run-python"
+  parameters:
+    namespace:
+      type: "string"
+      required: true
+    templatedir:
+      type: "string"
+      required: true
+    private_key:
+      type: "string"
+      required: true
+    jenkins_host:
+      type: "string"
+      required: true
+    jenkins_admin:
+      type: "string"
+      required: true
+    jenkins_version:
+      type: "string"
+      required: true
+    gitrepo:
+      type: "string"
+      required: true

@@ -1,0 +1,19 @@
+---
+  name: "new_setup_jenkins"
+  runner_type: "mistral-v2"
+  description: "Setup jenkins"
+  enabled: true
+  entry_point: "workflows/new_setup_jenkins.yaml"
+  pack: "bitesize"
+  parameters:
+    project:
+      type: "string"
+      description: "project name"
+      required: true
+    namespace:
+      type: "string"
+      description: "namespace to setup"
+      required: true
+    gitrepo:
+      type: "string"
+      required: true

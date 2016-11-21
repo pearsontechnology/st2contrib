@@ -1,0 +1,14 @@
+---
+  chain:
+    -
+      name: "get_namespaces"
+      ref: "consul.get"
+      parameters:
+        key: "bitesize"
+        recurse: True
+      on-success: "find_unapproved_ns"
+    -
+      name: "find_unapproved_ns"
+      ref: "bitesize.new_find_unapproved_ns"
+      parameters:
+        allns: "{{get_namespaces.result}}"

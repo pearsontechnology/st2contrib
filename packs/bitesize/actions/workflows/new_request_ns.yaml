@@ -1,0 +1,55 @@
+version: '2.0'
+
+bitesize.new_request_ns:
+  description: create consul metadata for new project/namespaces and notify bitesize team
+  type: direct
+  input:
+    - project
+    - email
+    - ns_list
+    - gitrequired
+    - gitrepo
+  tasks:
+    get_current_date:
+      action: core.local
+      input:
+        cmd: "date +%c"
+      publish:
+        current_date: <% task(get_current_date).result.stdout %>
+      on-success:
+        - namespace_owner
+    namespace_owner:
+      action: "consul.put"
+      input:
+        key: "bitesize/<% $.project %>/owner"
+        value: "<% $.email %>"
+      on-success:
+        - namespace_status
+    namespace_status:
+      with-items: suffix in <% $.ns_list %>
+      action: consul.put
+      input:
+        key: "bitesize/<% $.project %>/<% $.project %>-<% $.suffix %>/unapproved"
+        value: "<% $.current_date %>"
+      on-success:
+        - namespace_keys
+    namespace_keys:
+      with-items: suffix in <% $.ns_list %>
+      action: consul.put
+      input:
+        key: "bitesize/<% $.project %>/<% $.project %>-<% $.suffix %>/created"
+        value: "<% $.current_date %>"
+      on-success:
+        - namespace_git: <% $.gitrequired = true %>
+    namespace_git:
+      action: "consul.put"
+      input:
+        key: "bitesize/<% $.project %>/<% $.project %>-jnk/gitrepo"
+        value: "<% $.gitrepo %>"
+      on-success:
+        - namespace_git_unapp
+    namespace_git_unapp:
+      action: "consul.put"
+      input:
+        key: "bitesize/<% $.project %>/<% $.project %>-jnk/unapproved"
+        value: "<% $.current_date %>"
