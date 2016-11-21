@@ -1,0 +1,246 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+  "Description" : "Cassandra cluster CloudFormation template file.",
+  "Parameters" : {
+    "VpcId" : {
+      "Description" : "VpcId of your existing Virtual Private Cloud (VPC)",
+      "Type" : "String"
+    },
+    "VpcCidrBlock" : {
+      "Description" : "CIDR block of your Virtual Private Cloud (VPC)",
+      "Type" : "String",
+      "AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+      "ConstraintDescription": "must be a valid CIDR range of the form x.x.x.x/x."
+    },
+    "SubnetList" : {
+      "Description" : "List of subnets in the VPC",
+      "Type" : "CommaDelimitedList",
+      "ConstraintDescription" : "A comma delimited list of subnet id's"
+    },
+    "KeyName" : {
+      "Description" : "Name of an existing EC2 KeyPair to enable SSH access to the instances",
+      "Type" : "String",
+      "MinLength" : "1",
+      "MaxLength" : "64",
+      "AllowedPattern" : "[-_ a-zA-Z0-9]*",
+      "Default" : "andy",
+      "ConstraintDescription" : "can contain only alphanumeric characters, spaces, dashes and underscores."
+    },
+    "InstanceType": {
+      "Description": "EC2 instance type",
+      "Type": "String",
+      "Default": "m3.medium",
+      "ConstraintDescription": "must be a valid EC2 instance type."
+    },
+    "FleetSize" : {
+      "Description" : "Number of EC2 instances to launch for the Cassandra server",
+      "Type" : "Number",
+      "Default" : "3",
+      "MaxValue" : "10",
+      "MinValue" : "0"
+    },
+    "ClusterName" : {
+      "Description" : "The name of this Cassandra cluster",
+      "AllowedPattern" : "[-_a-zA-Z0-9]*",
+      "ConstraintDescription" : "can contain only alphanumeric characters, dashes and underscores.",
+      "Type" : "String"
+    },
+    "Namespace" : {
+      "Description" : "The namespace this cassandra cluster lives in",
+      "Type" : "String"
+    },
+    "Environment" : {
+      "Description" : "The Bitesize cluster environment (eg aaa)",
+      "Type" : "String"
+    },
+    "CassandraVersion" : {
+      "Default": "2.2",
+      "Description" : "Cassandra Version",
+      "AllowedValues": [
+        "2.2", "3.0"
+      ],
+      "Type" : "String"
+    },
+    "DataSpace" : {
+      "Default": 10,
+      "Description": "Size (GB) of /data fs for Cassandra data",
+      "Type" : "Number",
+      "MaxValue": 100,
+      "MinValue": 1
+    },
+    "AmiId": {
+      "Type": "String",
+      "Description": "AMI You want to use"
+    },
+    "Domain": {
+      "Type": "String",
+      "Description": "Cluster domain",
+      "Default": "prsn-dev.io"
+    }
+  },
+  "Resources" : {
+    "CassandraRole" : {
+      "Type" : "AWS::IAM::Role",
+      "Properties" : {
+        "AssumeRolePolicyDocument" : {
+          "Statement": [ {
+            "Effect": "Allow",
+              "Principal": {
+                "Service": [ "ec2.amazonaws.com" ]
+              },
+              "Action": [ "sts:AssumeRole" ]
+          } ]
+        },
+        "Path" : "/",
+        "Policies" :[ {
+          "PolicyName" : "PowerUserPolicy",
+          "PolicyDocument" : {
+            "Statement": [ {
+              "Sid": "PowerUserStmt",
+              "Effect": "Allow",
+              "NotAction": "iam:*",
+              "Resource": "*"
+            } ]
+          }
+        }]
+      }
+    },
+    "CassandraProfile" : {
+      "Type" : "AWS::IAM::InstanceProfile",
+      "Properties" : {
+        "Roles" : [ { "Ref" : "CassandraRole" } ]
+      }
+    },
+    "CassandraSecurityGroup" : {
+      "Type" : "AWS::EC2::SecurityGroup",
+      "Properties" : {
+        "VpcId" : { "Ref" : "VpcId" },
+        "GroupDescription" : "Allow all communications in VPC",
+        "SecurityGroupIngress" : [
+          { "IpProtocol" : "tcp", "FromPort" : "0", "ToPort" : "65535", "CidrIp" : { "Ref" : "VpcCidrBlock" } },
+          { "IpProtocol" : "udp", "FromPort" : "0", "ToPort" : "65535", "CidrIp" : { "Ref" : "VpcCidrBlock" } },
+          { "IpProtocol" : "icmp", "FromPort" : "-1", "ToPort" : "-1", "CidrIp" : { "Ref" : "VpcCidrBlock" } }
+        ]
+      }
+    },
+
+    "CassandraNode" : {
+      "Type" : "AWS::AutoScaling::AutoScalingGroup",
+      "UpdatePolicy" : {
+        "AutoScalingRollingUpdate" : {
+          "MaxBatchSize" : "1",
+          "MinInstancesInService" : "1",
+          "PauseTime" : "PT2M30S"
+        }
+      },
+      "Properties" : {
+        "AvailabilityZones" : { "Fn::GetAZs" : { "Ref" : "AWS::Region" } },
+        "LaunchConfigurationName" : { "Ref" : "CassandraNodeLaunchConfig" },
+        "VPCZoneIdentifier" : { "Ref" : "SubnetList" },
+        "MinSize" : { "Ref" : "FleetSize" },
+        "MaxSize" : { "Ref" : "FleetSize" },
+        "DesiredCapacity" : { "Ref" : "FleetSize" },
+        "Tags" : [
+          { "Key" : "Name", "Value" : { "Ref" : "ClusterName" }, "PropagateAtLaunch" : "true" },
+          { "Key" : "namespace", "Value" : { "Ref" : "Namespace" }, "PropagateAtLaunch" : "true" },
+          { "Key" : "Role", "Value" : "Cassandra", "PropagateAtLaunch" : "true" },
+          { "Key" : "Version", "Value" : { "Fn::Join" : [ " ", [ "Cassandra", { "Ref" : "CassandraVersion" } ] ] }, "PropagateAtLaunch" : "true" },
+          { "Key" : "Stack", "Value" : { "Ref" : "ClusterName" }, "PropagateAtLaunch" : "true" },
+          { "Key" : "casscluster", "Value" : { "Ref" : "ClusterName" }, "PropagateAtLaunch" : "true" },
+          { "Key" : "Environment", "Value" : { "Ref" : "Environment" }, "PropagateAtLaunch" : "true" }
+        ]
+      }
+    },
+
+    "CassandraNodeLaunchConfig"  : {
+      "Type" : "AWS::AutoScaling::LaunchConfiguration",
+      "Properties" : {
+        "InstanceType": { "Ref" : "InstanceType" },
+        "KeyName": { "Ref" : "KeyName" },
+        "ImageId": { "Ref" : "AmiId" },
+        "SecurityGroups": [
+          { "Ref" : "CassandraSecurityGroup" }
+        ],
+        "IamInstanceProfile": { "Ref" : "CassandraProfile" },
+        "InstanceMonitoring" : "false",
+        "UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
+          "#! /bin/bash -v\n",
+          "apt-get update && apt-get dist-upgrade -y\n",
+
+          "# Install packages\n",
+          "/usr/local/bin/cfn-init -s ", { "Ref" : "AWS::StackId" }, " -r CassandraNodeLaunchConfig ",
+          "    --region ", { "Ref" : "AWS::Region" }, "\n"
+        ]]}}
+      },
+      "Metadata" : {
+        "AWS::CloudFormation::Init" : {
+          "configSets" : {
+            "default" : [
+              "configure_hosts",
+              "get_ansible",
+              "run_ansible"
+            ]
+          },
+          "configure_hosts" : {
+            "commands" : {
+              "01-create_hosts_entry-on_boot" : {
+                "command" : "echo \"`curl -s curl http://169.254.169.254/latest/meta-data/local-ipv4` `hostname`\" >>/etc/hosts",
+                "test" : "test ! -f .create_hosts_entry-semaphore"
+              },
+              "02-signal_startup_complete" : {
+                "command" : "touch .create_hosts_entry-semaphore"
+              }
+            }
+          },
+          "install_java7" : {
+            "packages" : {
+              "apt" : {
+                "openjdk-7-jdk" : []
+              }
+            }
+          },
+          "get_ansible" : {
+            "packages" : {
+              "apt" : {
+                "git": []
+              }
+            },
+            "files" : {
+              "/root/.ssh/id_rsa" : {
+                "content" : "LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlKS0FJQkFBS0NBZ0VBcXMvdnBPU0xjUlBLUnFFdzRpK0VDVHpHTldJK21GVytRc1h6OVN0bExZM0I5TTlBCkUvVFplc3FoWU5aWUFpTW92ak9uZys1U2ZwMG52Z3lmWG1STnFpSHRkdlgyYjMzaXkvN0lPdXk2c29ETi9YSS8KWmJFd2dHbmJzdjFlZEpJNFVwMnhvSWdsakJrM0NaK1pCenQ5Szc0NmlucWdFYURORnNjbWRuV2taYzhBbUVjcwp1SVkyT0JQd1lzZmp4blhrREd6VTFpSUdjdFJlTnVPdlVQZXdmUXV2WFMxK0xJS1lvbEtudHRYRGZybjJIakE1CnpwcWZNV2lLaVF2YVZWNisxUEEydWlIUzVPVFF0aTAxckEvd3FpQU5XL0R3M2ZweVpYVFovSlYwdkxJTmoySVkKL3MwS1hVZlF2ZDE3V0VPL2gxUjVnQ0hkWktNaEpYSHdvdHo4ZVdZcGpEKzFIcjlrbGFQQWF1eGpLTXJMRmlkMApKRnA0YzlNWVV3OGo2WmNkcER5bFBQU0VSWnd3OW95NURLVGFqME1kL1lSZDdyZ0c2M1NLR0l1Uzl1SkxFQ1hqCkhxWElKeHpxZWdUMnRmWjB4c1pCNE5IajVSUnc1d0daVTZScG95K05PWkw2ZmZBSkZjUUxKSWZ1aTY1RmNHWEMKYm1Mb3VUKzZxZjJPNjFES2xDUlpEa3Bud3B1bFlFM1JOTmc5TlEyTlMxcitxZ1VIUjNwZGR5STJocDcvT0JUawo0RUJjL1YwZ2lRaEYrVXd5RDl5SGRBNXlUYXR0U2ZRUVRlV29QcCt6NlhkV20wbmRLdFF0V01rVVlBdHg2U0RkCnh2TnpLUDRVdkt6aWVXYXdEVWJzcXpJMWNJN3pQTlZUWkwwbHdSMjZhYlRYaDlsdThrMG12MXVMZTdjQ0F3RUEKQVFLQ0FnQmJZWlR1WFVwd08wc3EwQTlyNGttNysyUjZxTTJlQjdrYTFmWTJ3bm1Gam1JbVN6NFhyeFV1U1B0ZQo2Q3o3TDc0YlMxMGlDcnpkZWN3S000eUxIaFFpb2JYOXY0YVFqUU5wYVN2THdsdjdKVWVPZ0xHRUFQQldzc3RUCmpaTWJ3Q0licUx1ZmkxYXpCY1paQXFZR3BYL0lpQ09mZEF6d2dWdFhCVUlCZTl4d2p2YmRnSzVmSllZYUtDaWgKWUJqdVVxR25PQTRCWlFDWUxCOGZORjNWYmoxZ0dJRS8weGUrVGp2RUUzNGdKV3BLQU1pM3k4c1JTYzFDekkvWQowNXVCc29kYk9ndTlObDB5RVd2TEdwS3RNM1hvUGUrSHNYWGErNko1dnJMa0d6enh1anZnNm5VKzA0am84SU92Ckg2OWVRQmhXR1E1TFMxSzdCVDYxWHFpREtNQjBmYTQyQ1ZET2YwVXQzWnhsb0NVb2xUb1RLRVNjUkxDVGswbzcKMUZnNVBIbGFpZk8rdjJncnJVTkd1ZGxXOHVwRkVodHplblJ5Y0gzVEFJLzFpWDJHdkZnSmcvTWR2bGI1ZmRudgpVUkFtbGVlQTZLdkpvT0dLbWkvWktSam1tQWxKS210QWpXYkJ6WFNodCtaZGdwc3VVbFlVMkEreE5UMmN2RU56Ck9PZmpkZ3Rra2pEQjZLSlV1dkMyUS9MdmxhcFB0ZGxRdlJ3RzR6cklDOTVReFNvZHNaZXJMWkk3RHpGaGV4dDAKTmt1cG5DS0JBdkRkK3dsS0kzanA2QTd4bERxV3pxV3FGazdnZHkvdzBnNzRoZ0VDMXFPU2JEb3daWG1NbFJVWApUbFJQZmducmhvZ2FTMW9pbFUzT3dabVBxRDNPSDVrRlNiQUUyd3RqRjZpVEVxZVQyUUtDQVFFQTRLalM0dWdBCmJwbTFsVlBlanBidzBxNUU5SGJrUUQ4OEFKUDZ4ZXBIU0tLVnZjZzlHS05oU0NZOEdDUU5xTW9hSHNpT2NVTG4KQU9kQ1dFWXVBUGE3NHdhWHpLNjJyZFp4ODA4ZmhkUHhOTC84RThSM1JlNjgxdGJnMzBmd01Ub0dFWnV1L0VLSApGSEl2dUI0RFRxSWpFVXNjQjFGUnY2WjUzU3lhZnpScWR4M0pqRElRMHN0RFdtZ25LbUNSV1gxMlFaQTh6dDh2CjVyNXB0Kzd3M3hnMmZQNVd0TXRsUHVaaEFXNEh2SWNucldwZi9IbnhyRWp6RndCZHhzUVVrWWZZY1JMU0ZmVHoKUVZpWmRBVTBxdUZhNmRjV3ljMVpGeHlKYktPL3B4R2hnY2RRZkNHUkgrVTVMZG1ETU54b2NkU3V0ZFZkT3dDegp6aFhrRjJFaWwxNmFnd0tDQVFFQXdxUVdiS0hXRFM2eG9KUFNXUStEQk9TT1RMNVowUHVSclNKbW4wQnhMeEtICkEwd0IyOEZFcTFGYlBmemVsOUhQY0FTVVZjNU9YWnluQXhVZXFCMkw5dy9xSFRtZkpvQS8vUVU1a3V0czRjbmoKS2RuSU9ueFFGbFNnblJKQkQxL2lCRUxKT1Z2TmNSZlFUbE41Qm5sOUwybzlRRW92YnJRV0hoSitIOHdwL2MzYwo2c0NnK2JzTkxGeGJCU2l4UnF4OUJCSlVTOHBtTmw0YXZxTzd5ekRzL0xDWUZuOHZ4azluWGdGTE9zckZyU1lQCkFRVXI1NHRpSDhEalF3NjMzdVlXc0RiQ3VlOWZ2MUwwSnJBUUM5RSsrZzU0ZVZWT3VOVE85eHAyU0xHT3RVVlAKVVFybGw0YjA0MW1rZ0Y3d2lrWlFaS1Q4VlpXdUNDMWVpTC9SSDhhanZRS0NBUUJQa2Z2L2VnU05KOHYwczl2agp6UHBHNUlwdnU1eGtWUUUvZ3lvUzUwT1FLbVcyN2pFVmhPaHowWGIvWmVXZ250UlppdGRJcmxWN01HMkRMbmdrCnh6OE16Y3orSmZOMTVybzlYd3pmTFk0RkRPcVBaY3FJN21IY0JnZG5qZWM0eUVCV0JEb2FCc1lwSzdoVEVlNUIKNzVOVUVMSkF0VUNyREorbEFxTkY0cDdDeWI0VTliYVhzbjZNaXM4MFp6ZVQ1cWYzMk1wd3l3UUFTZmpQdU1WLwpmdWZ0cFhlNFdVSG00Vm9DVTZKUjE5enB3djkwUVF5ajVNS1Vwd0NQNGVzWEVISk11a25HbFJlRFVZb29XWitwCjFsK0k2ekdiRUN3NXoxV3RNT0kwbmo0QjVVSlFkT01kMU9aSG92NmdVN0I2Z01YUWlWMllCRXVxOW4zdStleHkKaUlOWkFvSUJBRU9YQTRwNXNJRW5ZOXRsT2JoZm9KbkVYSDNkNUFha05YUXY2LzhGTzhpaTRHdU9xMTZLZ0xRVgpMbUFhUFpudTY5LzBWeVpzMjkyNkZtMEZtbjI2dE8zNGdzM2ZRcHIyRWtKazNCZGUxWkthcnQzTG1MSm1sTkVNClZqSDFNczZKOTB5UGZKMEVlaFQ1dGdaZENqdnJXRU5zMnhSR0xxNThydW1HZG5ISVRoU3F0anAyNWUrU3V3SmEKbCtqMHRvcmFQeGQ0M2ZqcnNnN1RJdXBzcFR2c0kzK2tPMHdrb294MDZtcEVmTUZQeE5GWjFBQUFzYnhZTkp6ZQpPSTBDd1dzUDczVUZyeDB1T011Um5PTUtaS2dWNDQ2bUU4UGVrZFd4WUtXQ2RPek5hOGNhNkc0MklJQThCeklqCjRQSUxCZkNlZGpCYzhwc3R2Ujl0MGRRZStCbld1dWtDZ2dFQkFJVHJyeHR0dVF5MUZGMGdLREpLZTVoQVBDMmkKTTVWRGRkQ2tzSHNoVGZCdTZFYmo3ZzVtRlFZeWdDVjBLeUk3TFFnRGM4N3k2aWFqaGdZZDFmRVd2YWZ2RVY0ZApNOFgrN1NCYWp0clY2SU5OLzBZTHdiNjJOUzYvRWk3cW1XK0FGZ1c5eVpKUkRBK09odi9IZlhYWG5pL213c2JSCjJtWVB0NEtyaHlzdXpnZWdUTGFmZlNsek5ONkVnUU1vTW5lYjZBNi9ERFlIazdpdFR6VERKQnhjY2FpNEVrVHYKczB6My9CZHExTStObExndXVXejF0dXBCRzZLamczZVpHYU9VT0E1RkpWYVpxSXpjamVJK1lBa1RoVnpZSnM0aQpsdXJ2TEdrN0NpZHlWM25GV2M2KzZRRlROQjhtRlVyalNwdkJ4Mmc0NE9rNVNMd3k0RWhhdHhiT0lkQT0KLS0tLS1FTkQgUlNBIFBSSVZBVEUgS0VZLS0tLS0K",
+                "mode"     : "000600",
+                "owner"    : "root",
+                "group"    : "root",
+                "encoding" : "base64"
+              },
+              "/root/ansible_pull.sh" : {
+                "content" : { "Fn::Join" : ["", [
+                  "#!/bin/sh\n",
+                  "set -x\n",
+                  "cd /root\n",
+                  "ssh-keyscan github.com >> ~/.ssh/known_hosts\n",
+                  "git clone --branch dev --single-branch git@github.com:pearsontechnology/ansible-roles.git aws\n",
+                  "cd /root\n",
+                  "pip install -q -r ./aws/requirements.txt\n",
+                  "mkdir -p /etc/ansible\n",
+                  "python /root/aws/inventory/ec2_pull.py > /dev/null\n",
+                  "ansible-playbook -vvv aws/site_pull.yaml --extra-vars 'namespace=", {"Ref" : "Namespace"}, " cassandra_cluster_name=", {"Ref" : "Environment"}, " domain=", { "Ref" : "Domain" }, " vpc_id=", { "Ref" : "VpcId" }, " cassandra_endpoint_snitch=Ec2Snitch cassandra_install_version=", { "Ref" : "CassandraVersion" }, " stack_name=", {"Ref" : "ClusterName"}, " default_mount_point=/data ebs_vol_size=", {"Ref" : "DataSpace" }, "' $@\n"
+                ]]},
+                "mode"     : "000755",
+                "owner"    : "root",
+                "group"    : "root"
+              }
+            }
+          },
+          "run_ansible" : {
+            "commands" : {
+              "run_ansible" : {
+                "command" : "sh /root/ansible_pull.sh"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

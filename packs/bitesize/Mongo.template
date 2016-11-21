@@ -1,0 +1,531 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "MongoDB Replicaset CloudFormation template file",
+  "Parameters": {
+    "MongoVersion": {
+      "Description": "Supply a version of mongodb to install. Should be 2.6 or 3.2",
+      "Type": "String"
+    },
+    "KeyName": {
+      "Description": "Name of and existing EC2 KeyPair to enable SSH access to the instance",
+      "Type": "String"
+    },
+    "VpcId": {
+      "Type": "String",
+      "Description": "VpcId of your existing Virtual Private Cloud (VPC)"
+    },
+    "SubnetId1": {
+      "Type": "String",
+      "Description": "SubnetId of an existing subnet in your Virtual Private Cloud (VPC)"
+    },
+    "SubnetId2": {
+      "Type": "String",
+      "Description": "SubnetId of an existing subnet in your Virtual Private Cloud (VPC)"
+    },
+    "AmiId": {
+      "Type": "String",
+      "Description": "AMI You want to use"
+    },
+    "SecurityGroupId": {
+      "Type": "String",
+      "Description": "SecurityGroup to use"
+    },
+    "InstanceType": {
+      "Type": "String",
+      "Description": "Instance Type"
+    },
+    "Region": {
+      "Type": "String",
+      "Description": "Region"
+    }
+  },
+  "Resources": {
+    "Instance1": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "ImageId": {
+          "Ref": "AmiId"
+        },
+        "EbsOptimized" : "True",
+        "SecurityGroupIds": [
+          {
+            "Ref": "SecurityGroupId"
+          }
+        ],
+        "SubnetId": {
+          "Ref": "SubnetId1"
+        },
+        "KeyName": {
+          "Ref": "KeyName"
+        },
+        "InstanceType": {
+          "Ref": "InstanceType"
+        },
+        "BlockDeviceMappings" : [
+          {
+            "DeviceName": "/dev/sda1",
+            "Ebs": {
+              "VolumeSize": "40"
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": {
+              "Ref": "AWS::StackId"
+            }
+          },
+          {
+            "Key": "Name",
+            "Value": {
+              "Ref": "AWS::StackName"
+            }
+          }
+        ],
+        "IamInstanceProfile": "andrew-stackstorm-a-server-s3-profile",
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Join": [
+              "",
+              [
+                "#!/bin/bash -xe\n",
+                "",
+                "curl http://169.254.169.254/latest/meta-data/local-ipv4/ >",
+                "/tmp/my_priv_ip.txt",
+                "\n",
+                "curl -s -H \"X-Consul-Token: 8BC821C7-20B9-4659-96BF-5F7AD28F5840\" ",
+                "  -k -XPUT -d @/tmp/my_priv_ip.txt ",
+                "https://consul.andrew.prsn-dev.io/v1/kv/cloudformation/",
+                { "Ref": "AWS::StackName" },
+                "/instance1",
+                "\n",
+                "hostname mongo1","\n",
+                "sleep 60","\n",
+                "for y in {1..4}; do curl -s -H 'X-Consul-Token: 8BC821C7-20B9-4659-96BF-5F7AD28F5840' -k -XGET \"https://consul.andrew.prsn-dev.io/v1/kv/cloudformation/",
+                { "Ref": "AWS::StackName" },
+                "/instance$y?raw=true\" -o /tmp/instance$y.txt ; done",
+                "\n",
+                "export MONGO_INSTANCE1=$(cat /tmp/instance1.txt)","\n",
+                "export MONGO_INSTANCE2=$(cat /tmp/instance2.txt)","\n",
+                "export MONGO_INSTANCE3=$(cat /tmp/instance3.txt)","\n",
+                "export MONGO_INSTANCE4=$(cat /tmp/instance4.txt)","\n",
+                "cat >> /etc/hosts << EOF","\n",
+                "${MONGO_INSTANCE1} mongo1","\n",
+                "${MONGO_INSTANCE2} mongo2","\n",
+                "${MONGO_INSTANCE3} mongo3","\n",
+                "${MONGO_INSTANCE4} mongo4","\n",
+                "EOF","\n",
+                "cfn-init -v ",
+                "         --stack ",
+                {
+                  "Ref": "AWS::StackName"
+                },
+                "         --resource Instance1 ",
+                "         --region ",
+                {
+                  "Ref": "AWS::Region"
+                },
+                "\n",
+                "cfn-signal -e $? ",
+                "         --stack ",
+                {
+                  "Ref": "AWS::StackName"
+                },
+                "         --resource Instance1 ",
+                "         --region ",
+                {
+                  "Ref": "AWS::Region"
+                },
+                "\n"
+              ]
+            ]
+          }
+        }
+      }
+    },
+
+    "Instance2": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "ImageId": {
+          "Ref": "AmiId"
+        },
+        "EbsOptimized" : "True",
+        "SecurityGroupIds": [
+          {
+            "Ref": "SecurityGroupId"
+          }
+        ],
+        "SubnetId": {
+          "Ref": "SubnetId2"
+        },
+        "KeyName": {
+          "Ref": "KeyName"
+        },
+        "InstanceType": {
+          "Ref": "InstanceType"
+        },
+        "BlockDeviceMappings" : [
+          {
+            "DeviceName": "/dev/sda1",
+            "Ebs": {
+              "VolumeSize": "40"
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": {
+              "Ref": "AWS::StackId"
+            },
+            "Key": "Name",
+            "Value": {
+              "Ref": "AWS::StackName"
+            }
+          }
+        ],
+        "IamInstanceProfile": "andrew-stackstorm-a-server-s3-profile",
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Join": [
+              "",
+              [
+                "#!/bin/bash -xe\n",
+                "",
+                "curl http://169.254.169.254/latest/meta-data/local-ipv4/ >",
+                "/tmp/my_priv_ip.txt",
+                "\n",
+                "curl -s -H \"X-Consul-Token: 8BC821C7-20B9-4659-96BF-5F7AD28F5840\" ",
+                "  -k -XPUT -d @/tmp/my_priv_ip.txt ",
+                "https://consul.andrew.prsn-dev.io/v1/kv/cloudformation/",
+                { "Ref": "AWS::StackName" },
+                "/instance2",
+                "\n",
+                "hostname mongo2","\n",
+                "sleep 60","\n",
+                "for y in {1..4}; do curl -s -H 'X-Consul-Token: 8BC821C7-20B9-4659-96BF-5F7AD28F5840' -k -XGET \"https://consul.andrew.prsn-dev.io/v1/kv/cloudformation/",
+                { "Ref": "AWS::StackName" },
+                "/instance$y?raw=true\" -o /tmp/instance$y.txt ; done",
+                "\n",
+                "export MONGO_INSTANCE1=$(cat /tmp/instance1.txt)","\n",
+                "export MONGO_INSTANCE2=$(cat /tmp/instance2.txt)","\n",
+                "export MONGO_INSTANCE3=$(cat /tmp/instance3.txt)","\n",
+                "export MONGO_INSTANCE4=$(cat /tmp/instance4.txt)","\n",
+                "cat >> /etc/hosts << EOF","\n",
+                "${MONGO_INSTANCE1} mongo1","\n",
+                "${MONGO_INSTANCE2} mongo2","\n",
+                "${MONGO_INSTANCE3} mongo3","\n",
+                "${MONGO_INSTANCE4} mongo4","\n",
+                "EOF","\n",
+                "cfn-init -v ",
+                "         --stack ",
+                {
+                  "Ref": "AWS::StackName"
+                },
+                "         --resource Instance2 ",
+                "         --region ",
+                {
+                  "Ref": "AWS::Region"
+                },
+                "\n",
+                "cfn-signal -e $? ",
+                "         --stack ",
+                {
+                  "Ref": "AWS::StackName"
+                },
+                "         --resource Instance2 ",
+                "         --region ",
+                {
+                  "Ref": "AWS::Region"
+                },
+                "\n"
+              ]
+            ]
+          }
+        }
+      }
+    },
+
+    "Instance3": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "ImageId": {
+          "Ref": "AmiId"
+        },
+        "EbsOptimized" : "True",
+        "SecurityGroupIds": [
+          {
+            "Ref": "SecurityGroupId"
+          }
+        ],
+        "SubnetId": {
+          "Ref": "SubnetId1"
+        },
+        "KeyName": {
+          "Ref": "KeyName"
+        },
+        "InstanceType": {
+          "Ref": "InstanceType"
+        },
+        "BlockDeviceMappings" : [
+          {
+            "DeviceName": "/dev/sda1",
+            "Ebs": {
+              "VolumeSize": "40"
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": {
+              "Ref": "AWS::StackId"
+            }
+          },
+          {
+            "Key": "Name",
+            "Value": {
+              "Ref": "AWS::StackName"
+            }
+          }
+        ],
+        "IamInstanceProfile": "andrew-stackstorm-a-server-s3-profile",
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Join": [
+              "",
+              [
+                "#!/bin/bash -xe\n",
+                "",
+                "curl http://169.254.169.254/latest/meta-data/local-ipv4/ >",
+                "/tmp/my_priv_ip.txt",
+                "\n",
+                "curl -s -H \"X-Consul-Token: 8BC821C7-20B9-4659-96BF-5F7AD28F5840\" ",
+                "  -k -XPUT -d @/tmp/my_priv_ip.txt ",
+                "https://consul.andrew.prsn-dev.io/v1/kv/cloudformation/",
+                { "Ref": "AWS::StackName" },
+                "/instance3",
+                "\n",
+                "hostname mongo3","\n",
+                "sleep 60","\n",
+                "for y in {1..4}; do curl -s -H 'X-Consul-Token: 8BC821C7-20B9-4659-96BF-5F7AD28F5840' -k -XGET \"https://consul.andrew.prsn-dev.io/v1/kv/cloudformation/",
+                { "Ref": "AWS::StackName" },
+                "/instance$y?raw=true\" -o /tmp/instance$y.txt ; done",
+                "\n",
+                "export MONGO_INSTANCE1=$(cat /tmp/instance1.txt)","\n",
+                "export MONGO_INSTANCE2=$(cat /tmp/instance2.txt)","\n",
+                "export MONGO_INSTANCE3=$(cat /tmp/instance3.txt)","\n",
+                "export MONGO_INSTANCE4=$(cat /tmp/instance4.txt)","\n",
+                "cat >> /etc/hosts << EOF","\n",
+                "${MONGO_INSTANCE1} mongo1","\n",
+                "${MONGO_INSTANCE2} mongo2","\n",
+                "${MONGO_INSTANCE3} mongo3","\n",
+                "${MONGO_INSTANCE4} mongo4","\n",
+                "EOF","\n",
+                "cfn-init -v ",
+                "         --stack ",
+                {
+                  "Ref": "AWS::StackName"
+                },
+                "         --resource Instance3 ",
+                "         --region ",
+                {
+                  "Ref": "AWS::Region"
+                },
+                "\n",
+                "cfn-signal -e $? ",
+                "         --stack ",
+                {
+                  "Ref": "AWS::StackName"
+                },
+                "         --resource Instance3 ",
+                "         --region ",
+                {
+                  "Ref": "AWS::Region"
+                },
+                "\n"
+              ]
+            ]
+          }
+        }
+      }
+    },
+
+    "Instance4": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "ImageId": {
+          "Ref": "AmiId"
+        },
+        "EbsOptimized" : "True",
+        "SecurityGroupIds": [
+          {
+            "Ref": "SecurityGroupId"
+          }
+        ],
+        "SubnetId": {
+          "Ref": "SubnetId2"
+        },
+        "KeyName": {
+          "Ref": "KeyName"
+        },
+        "InstanceType": {
+          "Ref": "InstanceType"
+        },
+        "BlockDeviceMappings" : [
+          {
+            "DeviceName": "/dev/sda1",
+            "Ebs": {
+              "VolumeSize": "40"
+            }
+          }
+          ],
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": {
+              "Ref": "AWS::StackId"
+            }
+          },
+          {
+            "Key": "Name",
+            "Value": {
+              "Ref": "AWS::StackName"
+            }
+          }
+        ],
+        "IamInstanceProfile": "andrew-stackstorm-a-server-s3-profile",
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Join": [
+              "",
+              [
+                "#!/bin/bash -xe\n",
+                "",
+                "curl http://169.254.169.254/latest/meta-data/local-ipv4/ >",
+                "/tmp/my_priv_ip.txt",
+                "\n",
+                "curl -s -H \"X-Consul-Token: 8BC821C7-20B9-4659-96BF-5F7AD28F5840\" ",
+                "  -k -XPUT -d @/tmp/my_priv_ip.txt ",
+                "https://consul.andrew.prsn-dev.io/v1/kv/cloudformation/",
+                { "Ref": "AWS::StackName" },
+                "/instance4",
+                "\n",
+                "hostname mongo4","\n",
+                "sleep 60","\n",
+                "echo \"LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFcEFJQkFBS0NBUUVBcVp5RWFCMkhjV1gvWlN6R3JPWVV4SExKUzdpWXdsemVLMDdjMnFXUG12UUQ1cElTCmQ2cVJuNVBSb0R5bkx0LzAzanZDTm54ZXE0WEFpbVhIMXBFNWR1WndmV0RHSkpTUHA5N1pscFBoR2N5NFJkeFoKWGdPWTc0U3JtTEQzdjFtNXBkWkVrZzVVU1JpcTk0dFNsZHZEZG4vQ0NEbWlsYWJmczl0NFJnRWdsNzdlNG9mdAo5cUE4NzcxVXpLc2JKcG5MWGVKUTZKcFNjZS9qdEsyVHZvcHNoSHRMY295MU5sRzkvSzlvSTNhN0V2U010TFBECkFQNS85M0kzMmV1MElRa2Mzd2krMmxqTmJRVkhkUUx3YWF0dWNsYWUvWXhhYUpuV0dWRHVLeUlmYm9hMGlwdmEKOVNPWlNhNkErSTc3UUJoVTkwY2xleDRFQmc1dG03Q2J4d3ZKUlFJREFRQUJBb0lCQVFDVWhETUVuK2E3aXg2cApUeDNndzg4bmZZTjV4SGd1cVBiNVlTTE9hZTVuTm9nNzIyaEVWSjBTNkhMRUpwZ1YyWkVuRDVpdDhSVk1oOS9pCnorQytwNGR6NzdCTWVQTEhrVGFCUGdlMWJHUE5IWSsxekk2TVhnWUtwVmRFYXFGbGNvRzNEdm9ZRW1nSFlZeEQKR2tJRWF0eXE1SS9ZZCs4L3IxRnV3aHg4My92VUlxY2N4OGM1ZGIxU0p1WTR3QVlRQ3lUTDU4OFNiQldMM1JGWApiT2huZ3FnRTdjbG5kZU4wZ3k1V0pHcTRIZUNiSGVSejU5WWxzN3llaHpuWU0zTVNZRmlMTUpZWnpNS2FzOG93CnRnazl0U3l6K0lCU1dPSXFWUTdaR3hJay9YZ1ZPeVlObnRla0hjdTdrNHU5dW5PSDU1ZlZ4MzdqZlpDNGlDZmIKc3hLWTg5ZzVBb0dCQU5iREg5Y2phV1QwYVpra0FvREk3VmZJbi9Ia243MDdTcnRKYUltc3J5ZnFEZXZ6cGtWbgpYUFhibjh5YXNQWEdwT3pOblVRSFJQY1p2MTRVaDR6eEFaczc2RVlES0pHUTJHckRqRk1lVFVTMkRFV2RLTGNLCjA5RC9zby9CaXg5WmloZDhQR09PUlBlekhiaXRqYUlXeVZiOFlNVXdOM1JScUsyUUtuNGtNOVhqQW9HQkFNb3QKOUZmelRYQ1JJSWxuRGNRdTVpRHpqYmFoQUdRcEM1UFdrS0x5YmFteEZ3OU1ndnFOb0UzYkM5L1NOMUYzd0EyWgptNHpURlh2VWFWY2cwOURMMnZSZUpVSGxudFJnTVY5bUdRN2tFMWRMbFBaN0d2ZERnckJnTEtrcE9CVTVYWWNoCm10WkJzL1V3d0NBeU5jY0kzemZPZlM2dWdSVEd3NWNscExuWHo4eTNBb0dBTTNIc1o2bkk3bkVKOXJCRWxUc00KZDlITVZyS1FmVkQ5dHQxLzJETHdobHd2MTR5M0VMc1E3cWdjb0hPUjNsNG1WYjl2WThObUJ0YzVHejFKdHo1bwpSeHBUcXFuSkJ3MnVlZXk3NlpGQnF5cjh4NVE5RTVQWlo2QkkwdHpuQ2F4MlF1ZjB3MWhxTnZmR0w5NExKbi9VCjNTeDV0ZUsxOWZ3MXJ0WHhCK1IrTWtjQ2dZRUF3R2dGYmlIVVk3a3Bicm5OSnhPKzNFTU1iVzVCTWhEQnZOcm8KWUxvMzFOTDhjQW5QYUdTWjF4NEw2ZUJqMXJzUTRhQjZvUVZOSDhCZzA1TWhJVWF2dy9sSW1iTE5lYTFscnpVNQp5YXNTSVBTRCtpSGo0c2F6dStoNitDMksrdC9SKzBUbTF0cEdTYVF3WXpPRmJEb3NQQzdkZ1N4L0dXZWpRZGVJCk1YaUpnSGNDZ1lCSW83bzJmQmZVd1lyNWlqemxaRnBzQTN1Tm53VGttL3Q1bnNyMklUOCtDYXlvaTYrY0paR0cKbVNySk9mVlcyTngwVmFlWFVSU1NVUnVJaXFxSXM4ZlVJeHRyZDlTMC96eG01b0U1Q0hiUHFKYUp4RWo3OUYzVQpEK2gybTFvYTZDbmZIN2VCMC9BTUE4TzErMGdWZjBhNzM2MkpaOHUrMW41a285UGVTWHJWcUE9PQotLS0tLUVORCBSU0EgUFJJVkFURSBLRVktLS0tLQo=\" > /root/.ssh/cluster_instances_key.b64w0","\n",
+                "base64 -d /root/.ssh/cluster_instances_key.b64w0 > /root/.ssh/id_rsa && chmod 0600 /root/.ssh/id_rsa","\n",
+                "for y in {1..4}; do curl -s -H 'X-Consul-Token: 8BC821C7-20B9-4659-96BF-5F7AD28F5840' -k -XGET \"https://consul.andrew.prsn-dev.io/v1/kv/cloudformation/",
+                { "Ref": "AWS::StackName" },
+                "/instance$y?raw=true\" -o /tmp/instance$y.txt ; done",
+                "\n",
+                "export MONGO_INSTANCE1=$(cat /tmp/instance1.txt)","\n",
+                "export MONGO_INSTANCE2=$(cat /tmp/instance2.txt)","\n",
+                "export MONGO_INSTANCE3=$(cat /tmp/instance3.txt)","\n",
+                "export MONGO_INSTANCE4=$(cat /tmp/instance4.txt)","\n",
+                "cat >> /etc/hosts << EOF","\n",
+                "${MONGO_INSTANCE1} mongo1","\n",
+                "${MONGO_INSTANCE2} mongo2","\n",
+                "${MONGO_INSTANCE3} mongo3","\n",
+                "${MONGO_INSTANCE4} mongo4","\n",
+                "EOF","\n",
+                "ssh-keyscan github.com >> ~/.ssh/known_hosts","\n",
+                "echo \"LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlKQ1FJQkFBS0NBZnNBeStZaEpaWjFzcEp3N2l6MURPcjRiZnZzSkFhOFlTd0RRMEh2WDBxTG5MblY5QmhOClNEZnJuKzcyVjZ3MFNhV21HQ1ZHeVBzcXhqVGw1TjBibEtPMHM4SVVOSUNIS2hhWjdVNXVDcCtnQ1NlQmZFVGcKbnllLzhoN3phU0xlZnBsa3F3L3VnRXgwdStKTVFqbWgrK3R2TDBBMFVINzJFRTVDTyt1UW92MUo2Rjh0Znk1cgplMkxqK0drTEt3TkdjMm91UUhaTjU2eDFOUXB0ejhCcW9ENkZCNG1HcnB5TVBlM24zc1NlcmMvVW1zR1lrUGFxCm1pNU1ZdHlESHRwbzJ3VUlyYm94RG9xMkVMd1hFTDQ5cVNHbGxDaUovMnlHNlNqY29nS0NMRWdIZTl1VXAza1kKa2JybDZ1YnVHNlp3dlhuN0NVZzhCSFVPZDRsQWhqL2ZFb0V5YXA5bjNiaGRZYzN3L0h4UXVxYlgvTmRSUndycgpTbjNkMXpUQ2k3TENTWE5qaFRMSFF1a1h6UDFsNkYxMnVHbXdScnpoUkZhVnlxQkdGR1pXTm01ME1jVFVUWURtCk84anM3c2xMSW9JR3RrVlQrQXRWWWk1U2VSbGNzUEN0cWNDdy81VjByM1pSUko2WnQyOEszVHlHcXNMSmh2RFkKMmFwTWxZOElqZWZNZ3RWYkF6VFRaT2NNaGJiMWZ3eExtK3E5dFllYUI5Uk9ZRDloWFM3alhmVlhoMnRtSXFuagpEcVgzUWYycThnRVhYcTRLUUtTMHJMakVrbC8wTmJ1MWNUZVRkRnNCaS80ZzF5NWpWUEhtTXR1QUplQXpKc2xCClMySkpIMXhmSW9ZS1VhR3ozS0t2VE1ETDdxcnRvNDFFdWYrUk9yU2tMT3d0TTdBZWRzRUNBd0VBQVFLQ0Fmc0EKeE55RXhsQzFoRnJGTkFBdC9ISGt0L1BTTTVwWlNReUFmZkJzRjduV2Y5UWcwVktoVXdmQ3RDQzRzVDh2SUtnUgpiQ0NaYmpTcVFNSVQ4RnJXWlRXRm8wVFAwejBBdzA4ZEFMU0hwRFFvQkk2akF3TlJSL2pONXd1aEFiSkwxVGx1CnE0WnZSR29ORHRYWHdOejZHMHRkaHVaYlhCaW9wR2VhcFZXenlObjZBS1BjUG4zb0FqSWhYdGEwbEt2TjJtTDcKRXZ2bURiZEJWcHVpR0VKejhCRk15VkVydXV5a3JxcERBNThjZ1Q0Mnk4Lzg2SUZ2aC9zSmZ5M2VYdXlLN21PMgoxRnovUGtZSXNMR1pKMjQyQkZUYkUrZnNETE9Rc2c3a3JucnppYU5scmx6NzhwSUZlYlpVZys3QWwrdWowQnkwCmxtcXFuN2NRNTdLWm5NU1FMd2tGL2N1SzVkL0pObHdRSTNCd3RRaWcxendVOWdNdThWZ09ZTmt0UVVCZUF1MUwKWVBZZFpMWTIrSlVRdTBGbkRVejl4d2JNSlJnSFgrVG1EYlQrTjAwcFRLSDVsUm1adDhYZkFEdzZlSjBWcHlrYQpmRU1TL3MyWnBtK0dTZEVtYVFVSXhLU29PM3ZYOHlTeTZWUVV6dE5wQXRMeWp1Sk5pb2U5ZlZwR1BtNENTTXBZCnBXN0ppM0dFQ05wTVYvOGNFT3RHZWFqS3dxbWorTmtvWXhoTXRkK3Z4ajlQN0VtUmRSZHdqVVh4UWVGWFN1NnUKSDBwMEtwNVM0dEVXU2dmNWduNU5xQmo4TGxmYS93amFlYk03bGFrcTJnYnhYQWJqdkl2RkVwRHFhL2pMLzVrRgppNGxRdW0xVmcrcTNWcVR1U0lmYzlLMVdVSlBYWS9KQUZKMENnZjRBN2kyMnRGMjgzOTRlSGJBM20yREVRVmtqCjJyYVhNcFV0dlgxRGFGc1R2Y00vWFhYTEdnV3kyT1J3aVZKQ0pUZGNyU0pWd1p3YXFNWWtLZTh6ME1Zc2toTE0KYlkrZm04NjNzY1M1VTVRZVVuSlRUR1pNc3B4eDd3RW1SdmNZM3ZyMWVLY3NsMG01UU5ubEw2Z0U4UTlwM2ExWQpsUDUvZjlIOFlQb29lMjQvRlAzaXAzbC9OeTlqeHhMcFhJOElSNHIrQ0JNaDQxOG1Gd1RMUjNOT2VjWUxhaDRjCjF3YUpoMElNZUNjL1BnMkhKTTU1eTg1dElZUWUyK21iY3ZiQkVVdWxsWnorR2Q1WGtkTG5QamtreDlteXdJYTQKV1hLY2x2R0wrSHdzMlY5a2FZOUorV2M0MDZuNS8zemhySGRwRDIrdWRrT0tDdHhDMzR5bVZzRzdxd0tCL2dEYgpKOHNFaFgzN1pXZ3JLK1A2QkZHMnJQVmdiQllzK3JvYkkzWWRzVTZzeE56Nk9iOUF6ZXBWNFJUMm8zWU1yREpMCmYxY0F3R2RBYzAzd09HS3NlSEFnTmQ4anVUZ2FrdzdZQ3dKM0dZcUVjYVRoUlJIbitOMzllVll1NlBMYkZ5NkkKVWNTNnhORHFBRzc0aGJ6M2dKVkxQbFFMVHhUbkRkdzl6NzdPc0Ewb21hTmtvcXd1S1pLU2dyYmpiWCthVXRJaQp6YVJvQjhidEVmZEhFY2tBeS9HaDV4Qk4rYXRMaG5ZTlQwMUdWc1ljbnZDUmRWeXpRcWl4VkFjRUlMUFpMazdFClZOdVBPWmpkWHphaHJvTk9xWmFlREpKcHZlODNSTVA3cDRPUUc0ZWtMcFFLSTU3NGJjYUoyVWllMm85Q09yUHIKVWVNeHlCV2pjNnd2RGd0REFvSCtBSnVTWW0rSGR0SW5MRGFxSG5nd0NhREJqOGpSVVFzcUk3bE1zNVhiUDViSQpqSUFJYThRd2lyUmU2aDdZQ3ZweUllZTRzSmtJMU9UK255cUE0ckJ3Y1Rac2J2ajFRZ1NzVHBJZjlBbGlpemZCCkV5V3BBRm4rRS9GUUorZGNpUE5FcXNmSE1qb1RYcHk4ZHBYZFFuVU9ZMUQzWkEvVitBUE9iZklPRkJralZyTG8KYm42RHZwT1dNYThiYkRBWUFRbHlBU0hYRldDRmlzU29UZnI2bHZ5MVhrbFBKL2xQZk05TFZnZTVZdmF1TVdMYQpOdlhuZktMU3dMRlY4a0p5YUlOYWpPcWZvOTNUdkJFMDEvUnRzTmVWRzh2amMxQ0JxMFJ3dThOdm9IL1BiakFBCjl3bWY0WjludkRLa0tHZlZpMXNZMExUUXdyNzdSZmJzME0yRU40Y0NnZjBscVByc05meG1QUkRmaWxWTTIzMG4KUlNXTmdrVjFTVWk5N1NRWkNpVVk3Mk9CNUhhSExsdDhrb2RGc3VWUVhDN3dabHVQRjRFbXhDbTZoQllBeVZtTApUM2FlN3U5RE1jNDFOZjhnZEZVbldWZ2FGZ0p6dUlKOVVtS0xBU0Rxb1ZzdnRjMTJ3dWVicnFOak5hZzVaL0UvCjB1QWlhVjZRTGdPUTQ2aElZRnlDZzVSZWNNM2h5T2NWSWoxSGE4T253MSswOTEydk90Ym1XbFlCOG41MkVwWGQKV3BXa3NLak0rN2hCcFVVRU4xa29CZkFWTHZQVklqbFc3N2VjNy9tMzhvczZsZEo5RkVxK2orUVZlS1c3Mk15MwpNRFhnMGZEUHNKTjFKVjRvWDNLNXRmOWVscXgweUhoN3E4a2M4elgzRFp0cGJ0TDU5UVl5NW1mS1ZrRjlBb0g5ClRlU256bHM3Nkl4cmdYOFVVRGorVmswbDZuY3NYc3YrZ25WWGNXZFlkVWRPUGFLeUNjbUVWTmJOY0QxTmdYSjYKQTM3WXhJNHg2eG8zQjdqVWdjTFh0OWlZdE5xQTFFbFpXKytRbmxRU3ZNc094RmdEeGVqdXoyTGNLQVNaMCtmRAowQ0dKeUpoSjZjK1o3UnFDSkFGdWowRlF0L3NsL1llUDRWWTJWL3VaNUI1UEh4SnFDWDNLMFc2cDMwcGFjMGIyCnorMTEyNWEvUzJoejhxZlJJM01MbHZnODhpVjlMN08yZnBzc3FEQ0hFWFlkNEt4eG1Ib0NPM2hvYVljejg0N3kKTVgvdE9NYWtOTDZVVzZmQTlJTzBnV3Q2cWdWZlpjL1JaOGN2cHVCSjUwUXFVUjlMbjlhMDltVzg2eEtCMllVcAozSWZkbUs3UUVpNmpNeDl5VVE9PQotLS0tLUVORCBSU0EgUFJJVkFURSBLRVktLS0tLQo=\" > /root/.ssh/ro_key.b64w0","\n",
+                "base64 -d /root/.ssh/ro_key.b64w0 > /root/.ssh/ro_key && chmod 0600 /root/.ssh/ro_key","\n",
+                "cat > /root/.ssh/config << EOF","\n",
+                "Host github.com","\n",
+                "     HostName github.com","\n",
+                "     IdentityFile /root/.ssh/ro_key","\n",
+                "EOF","\n",
+                "pushd /root/; git clone git@github.com:pearsontechnology/ansible-roles.git --branch dev --single-branch aws","\n",
+                "mkdir -p /root/aws/group_vars","\n",
+                "cd /root; pip install -q -r ./aws/requirements.txt","\n",
+                "cat > ./aws/hosts.inventory << EOF","\n",
+                "[mongo_master]","\n",
+                "${MONGO_INSTANCE4}    ansible_user=root mongodb_master=true","\n",
+                "[mongo_replicas]","\n",
+                "${MONGO_INSTANCE3}  ansible_user=root","\n",
+                "${MONGO_INSTANCE2}  ansible_user=root","\n",
+                "${MONGO_INSTANCE1}  ansible_user=root","\n",
+                "[mongo:children]","\n",
+                "mongo_master","\n",
+                "mongo_replicas","\n",
+                "[aws_host:children]","\n",
+                "mongo","\n",
+                "[tag_Name_mongo:children]","\n",
+                "mongo","\n",
+                "EOF","\n",
+                "cat > ansible.cfg << EOF","\n",
+                "[defaults]","\n",
+                "host_key_checking = False","\n",
+                "EOF","\n",
+                "cat > ./aws/group_vars/all.yaml << EOF","\n",
+                "mongodb_security_authorization: enabled","\n",
+                "mongodb_net_bindip: 0.0.0.0","\n",
+                "mongodb_version: ", "\"",{ "Ref": "MongoVersion" },"\"","\n",
+                "mongodb_replication_replset: mongoreplicas","\n",
+                "mongodb_login_host: ${MONGO_INSTANCE4}","\n",
+                "mongodb_replication_params:","\n",
+                "- { host_name: ${MONGO_INSTANCE4}, host_port: 27017, host_type: replica }","\n",
+                "EOF","\n",
+                "pushd /root/aws; ansible-playbook -vv -i hosts.inventory -e \"region=",{ "Ref": "AWS::Region" },
+                " stack_name=",{ "Ref": "AWS::StackName" },"\" site_pull.yaml","\n",
+
+                "cfn-init -v ",
+                "         --stack ",
+                {
+                  "Ref": "AWS::StackName"
+                },
+                "         --resource Instance4 ",
+                "         --region ",
+                {
+                  "Ref": "AWS::Region"
+                },
+                "\n",
+                "cfn-signal -e $? ",
+                "         --stack ",
+                {
+                  "Ref": "AWS::StackName"
+                },
+                "         --resource Instance4 ",
+                "         --region ",
+                {
+                  "Ref": "AWS::Region"
+                },
+                "\n"
+              ]
+            ]
+          }
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "Instance1PrivateIP": {
+      "Value": {
+        "Fn::GetAtt": ["Instance1", "PrivateIp"]
+      },
+      "Description": "Private IP address of Instance1"
+    },
+    "Instance2PrivateIP": {
+      "Value": {
+        "Fn::GetAtt": ["Instance2", "PrivateIp"]
+      },
+       "Description": "Private IP address of Instance2"
+    },
+    "Instance3PrivateIP": {
+      "Value": {
+        "Fn::GetAtt": ["Instance3", "PrivateIp"]
+        },
+      "Description": "Private IP address of Instance3"
+    },
+    "Instance4PrivateIP": {
+      "Value": {
+        "Fn::GetAtt": ["Instance4", "PrivateIp"]
+      },
+      "Description": "Private IP address of Instance4"
+      }
+  }
+}

@@ -9,3 +9,6 @@ parameters:
         description: "Key to retrieve from Consul"
         required: true
         position: 0
+    recurse:
+        type: boolean
+        description: "Should this be a recursive lookup?"
