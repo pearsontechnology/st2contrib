@@ -1,0 +1,16 @@
+---
+  chain:
+    -
+        name: "get_stackstorm_consul_token"
+        ref: "bitesize.new_read_secret"
+        parameters:
+            name: "consul-stackstorm-mgmt"
+            namespace: "kube-system"
+        publish:
+            secret: "{{ get_stackstorm_consul_token.secret }}"
+        on-success: "write_stackstorm_consul_token_to_config"
+    -
+        name: "write_stackstorm_consul_token_to_config"
+        ref: "core.local_sudo"
+        parameters:
+            cmd: "sed -i '/^token:/c\\token: {{ secret }}' /opt/stackstorm/packs/consul/config.yaml"

@@ -1,0 +1,7 @@
+---
+  name: "new_configure_vault_pack"
+  runner_type: "action-chain"
+  description: "Gets vault access token for stackstorm and configures vault/config.yaml"
+  enabled: true
+  entry_point: "workflows/new_configure_vault_pack.yaml"
+  pack: "bitesize"

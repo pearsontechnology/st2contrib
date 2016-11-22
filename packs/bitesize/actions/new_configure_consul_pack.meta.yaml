@@ -1,0 +1,7 @@
+---
+  name: "new_configure_consul_pack"
+  runner_type: "action-chain"
+  description: "Gets consul access token for stackstorm and configures consul/config.yaml"
+  enabled: true
+  entry_point: "workflows/new_configure_consul_pack.yaml"
+  pack: "bitesize"
