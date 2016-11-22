@@ -40,8 +40,8 @@ bitesize.new_create_ns:
     setup_jenkins:
       action: bitesize.new_setup_jenkins
       input:
+        project: <% $.project %>
         namespace: <% $.namespace %>
-        gitrepo: <% $.gitrepo %>
       on-success:
         - setup_quota
     setup_consul:
@@ -59,6 +59,7 @@ bitesize.new_create_ns:
     setup_quota:
       action: bitesize.new_setup_namespace_quota
       input:
+        project: <% $.project %>
         namespace: <% $.namespace %>
       on-success:
         - delete_unapproved
@@ -70,5 +71,5 @@ bitesize.new_create_ns:
         - notify_customer
     notify_customer:
       action: core.local
-        input:
-          cmd: echo done
+      input:
+        cmd: echo done

@@ -5,7 +5,6 @@ bitesize.new_setup_jenkins:
   input:
     - project
     - namespace
-    - gitrepo
   tasks:
     random_dir:
       action: core.local
@@ -14,11 +13,13 @@ bitesize.new_setup_jenkins:
       publish:
         jenkdir: "/tmp/jenkins.<% task(random_dir).result.stdout %>"
       on-success:
-        - testing
-    testing:
-      action: core.local
+        - get_gitrepo
+    get_gitrepo:
+      action: consul.get
       input:
-        cmd: "echo <% env() %>"
+        key: "bitesize/<% $.project %>/<% $.namespace %>/gitrepo"
+      publish:
+        gitrepo: <% task(get_gitrepo).result.result.Value %>
       on-success:
         - get_jenkins
     get_jenkins:
@@ -45,7 +46,7 @@ bitesize.new_setup_jenkins:
       input:
         key: "bitesize/defaults/defaultdomain"
       publish: 
-        default_domain: <% coalesce(task(get_default_domain).result.result, "prsn-dev.io") %>
+        default_domain: <% coalesce(task(get_default_domain).result.result.Value, "prsn-dev.io") %>
       on-success:
         - get_jenkins_version
     get_jenkins_version:
@@ -53,7 +54,7 @@ bitesize.new_setup_jenkins:
       input:
         key: "bitesize/defaults/jenkinsversion"
       publish: 
-        jenkins_version: <% coalesce(task(get_default_domain).result.result, "3.4.28") %>
+        jenkins_version: <% coalesce(task(get_default_domain).result.result.Value, "3.4.28") %>
       on-success:
         - update_jenkins
     update_jenkins:
