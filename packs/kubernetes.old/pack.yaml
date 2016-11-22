@@ -1,5 +1,5 @@
 ---
-name : kubernetes
+name : kubernetes.old
 description : st2 content pack containing Kubernetes sensors
 keywords:
   - kubenetes
