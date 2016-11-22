@@ -14,7 +14,7 @@ class CassandraSpec(Action):
             self.region = self.config.get('region') 
             parameters_config = self.config['cassandra']
             stack_name = stack_name_or_id = payload['name'] + "-" + payload['namespace']
-            template_file = self.config.get('template_path') + payload['labels']['type'] + '.template'
+            template_file = self.config.get('template_path') + 'Cassandra.template'
             namespace = payload['namespace']
             environment = self.config['environment']
             template_body = open(template_file, 'r').read()
