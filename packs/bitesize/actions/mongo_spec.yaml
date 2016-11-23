@@ -1,0 +1,12 @@
+---
+  name: "mongo_spec"
+  entry_point: "mongo_spec.py"
+  pack: "bitesize"
+  description: "Munge Kubernetes data so we can create a mongo cloudformation Stack."
+  runner_type: run-python
+  parameters:
+    payload:
+      type: object
+    config:
+      type: object
+

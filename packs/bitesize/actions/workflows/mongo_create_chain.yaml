@@ -1,8 +1,8 @@
 ---
   chain:
     -
-      name: "cloudformation_spec"
-      ref: "bitesize.cloudformation_spec"
+      name: "mongo_spec"
+      ref: "bitesize.mongo_spec"
       params:
         payload: "{{payload}}"
       on-success: "create_cloudformation_stack"
@@ -10,9 +10,9 @@
       name: "create_cloudformation_stack"
       ref: "aws.cf_create_stack"
       params:
-        stack_name: "{{cloudformation_spec.result.stack_name}}"
-        template_body: "{{cloudformation_spec.result.template_body}}"
-        parameters: "{{cloudformation_spec.result.parameters}}"
+        stack_name: "{{mongo_spec.result.stack_name}}"
+        template_body: "{{mongo_spec.result.template_body}}"
+        parameters: "{{mongo_spec.result.parameters}}"
         capabilities:
         - "CAPABILITY_IAM"
       on-success: "get_stack_events"
@@ -20,7 +20,7 @@
       name: "get_stack_events"
       ref: "bitesize.describe_stack_events"
       params:
-        stack_name_or_id: "{{cloudformation_spec.result.stack_name}}"
+        stack_name_or_id: "{{mongo_spec.result.stack_name}}"
       on-success: "check_stack_status"
     -
       name: "check_stack_status"
@@ -39,7 +39,7 @@
       name: "get_stack_output"
       ref: "kubernetes.cf_output"
       params:
-        stack_name_or_id: "{{cloudformation_spec.result.stack_name}}"
+        stack_name_or_id: "{{mongo_spec.result.stack_name}}"
       on-success: "init_replicaset"
     -
       name: "init_replicaset"
@@ -56,7 +56,7 @@
       name: "create_mongodb"
       ref: "core.remote_sudo"
       parameters:
-        cmd: "mongo -usiteRootAdmin -ppassw0rd admin --eval \"db=db.getSiblingDB('{{cloudformation_spec.result.db_name}}');db.createUser({ user: '{{cloudformation_spec.result.user_name}}', pwd: '{{cloudformation_spec.result.pw}}', roles: [ { role: 'readWrite', db: '{{cloudformation_spec.result.db_name}}' } ] })\""
+        cmd: "mongo -usiteRootAdmin -ppassw0rd admin --eval \"db=db.getSiblingDB('{{mongo_spec.result.db_name}}');db.createUser({ user: '{{mongo_spec.result.user_name}}', pwd: '{{mongo_spec.result.pw}}', roles: [ { role: 'readWrite', db: '{{mongo_spec.result.db_name}}' } ] })\""
         hosts: "{{get_stack_output.result['Instance4PrivateIP']}}"
         username: "ubuntu"
         timeout: "300"
@@ -66,50 +66,50 @@
       name: "consul_put_instance4_ip"
       ref: "consul.put"
       parameters:
-        key: "{{cloudformation_spec.result.namespace}}/mongo_ipaddress4"
+        key: "{{mongo_spec.result.namespace}}/mongo_ipaddress4"
         value: "{{get_stack_output.result['Instance4PrivateIP']}}"
       on-success: "consul_put_instance3_ip"
     -
       name: "consul_put_instance3_ip"
       ref: "consul.put"
       parameters:
-        key: "{{cloudformation_spec.result.namespace}}/mongo_ipaddress3"
+        key: "{{mongo_spec.result.namespace}}/mongo_ipaddress3"
         value: "{{get_stack_output.result['Instance3PrivateIP']}}"
       on-success: "consul_put_instance2_ip"
     -
       name: "consul_put_instance2_ip"
       ref: "consul.put"
       parameters:
-        key: "{{cloudformation_spec.result.namespace}}/mongo_ipaddress2"
+        key: "{{mongo_spec.result.namespace}}/mongo_ipaddress2"
         value: "{{get_stack_output.result['Instance2PrivateIP']}}"
       on-success: "consul_put_instance1_ip"
     -
       name: "consul_put_instance1_ip"
       ref: "consul.put"
       parameters:
-        key: "{{cloudformation_spec.result.namespace}}/mongo_ipaddress1"
+        key: "{{mongo_spec.result.namespace}}/mongo_ipaddress1"
         value: "{{get_stack_output.result['Instance1PrivateIP']}}"
       on-success: "consul_put_db_name"
     -
       name: "consul_put_db_name"
       ref: "consul.put"
       parameters:
-        key: "{{cloudformation_spec.result.namespace}}/mongo_dbname"
-        value: "{{cloudformation_spec.result.db_name}}"
+        key: "{{mongo_spec.result.namespace}}/mongo_dbname"
+        value: "{{mongo_spec.result.db_name}}"
       on-success: "consul_put_user_name"
     -
       name: "consul_put_user_name"
       ref: "consul.put"
       parameters:
-        key: "{{cloudformation_spec.result.namespace}}/mongo_username"
-        value: "{{cloudformation_spec.result.user_name}}"
+        key: "{{mongo_spec.result.namespace}}/mongo_username"
+        value: "{{mongo_spec.result.user_name}}"
       on-success: "vault_put_pw"
     -
       name: "vault_put_pw"
       ref: "vault.write"
       parameters:
-        path: "secret/{{cloudformation_spec.result.namespace}}/mongo"
-        values: '{"mongo_password":"{{cloudformation_spec.result.pw}}"}'
+        path: "secret/{{mongo_spec.result.namespace}}/mongo"
+        values: '{"mongo_password":"{{mongo_spec.result.pw}}"}'
     -
       name: "retry_init_replicaset"
       ref: "core.local"

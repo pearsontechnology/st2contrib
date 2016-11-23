@@ -5,7 +5,7 @@ from urlparse import urljoin
 from st2actions.runners.pythonrunner import Action
 
 
-class CloudFormationSpec(Action):
+class MongoSpec(Action):
 
     def run(self, payload, config):
         # take the payload name and replace any non-alphanumerical characters
@@ -33,7 +33,7 @@ class CloudFormationSpec(Action):
         try:
             stack_name = stack_name_or_id = payload['name'] + payload['namespace']
             s3_bucket_url = self.config.get('s3_bucket_url')
-            template_file = self.config.get('template_path') + payload['labels']['type'] + '.template'
+            template_file = self.config.get('template_path') + 'Mongo.template'
             namespace = payload['namespace']
             template_body = open(template_file, 'r').read()
             parameters_config = self.config['cloudformation']['stack_params']
