@@ -5,7 +5,7 @@ description: "Check for Mongo cloudformation events to manage from kubernetes th
 enabled: true
 
 trigger:
-  type: "kubernetes.thirdpartyobject"
+  type: "kubernetes.thirdpartyresources"
   parameters: {}
 
 criteria:

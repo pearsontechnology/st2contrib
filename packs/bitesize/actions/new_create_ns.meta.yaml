@@ -9,6 +9,8 @@
     project:
       type: "string"
       description: "project name"
+      required: true
     namespace:
       type: "string"
       description: "namespace to setup"
+      required: true

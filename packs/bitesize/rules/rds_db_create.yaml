@@ -5,7 +5,7 @@ description: "Check for rds events to manage from kubernetes thirdpartyresource 
 enabled: true
 
 trigger:
-  type: "kubernetes.thirdpartyobject"
+  type: "kubernetes.thirdpartyresources"
   parameters: {}
 
 criteria:

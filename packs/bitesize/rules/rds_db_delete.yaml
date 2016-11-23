@@ -5,7 +5,7 @@ description: "Check for rds instances to delete using kubernetes thirdpartyresou
 enabled: true
 
 trigger:
-  type: "kubernetes.thirdpartyobject"
+  type: "kubernetes.thirdpartyresources"
   parameters: {}
 
 criteria:

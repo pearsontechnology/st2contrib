@@ -5,7 +5,7 @@ description: "Check for Mongo cloudformation stacks to delete using kubernetes t
 enabled: true
 
 trigger:
-  type: "kubernetes.thirdpartyobject"
+  type: "kubernetes.thirdpartyresources"
   parameters: {}
 
 criteria:

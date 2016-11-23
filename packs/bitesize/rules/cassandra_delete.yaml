@@ -5,7 +5,7 @@ description: "Check for Cassandra cloudformation stacks to delete using kubernet
 enabled: true
 
 trigger:
-  type: "kubernetes.thirdpartyobject"
+  type: "kubernetes.thirdpartyresources"
   parameters: {}
 
 criteria:
