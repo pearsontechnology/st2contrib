@@ -1,0 +1,15 @@
+---
+  name: "nfs_spec"
+  entry_point: "nfs_spec.py"
+  pack: "bitesize"
+  description: "Munge Kubernetes data so we can create an NFS Cloudformation Stack."
+  runner_type: run-python
+  parameters:
+    payload:
+      type: object
+    config:
+      type: object
+    customer:
+      type: string
+    volzie:
+      type: string

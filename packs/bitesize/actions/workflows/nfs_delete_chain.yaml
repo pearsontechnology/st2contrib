@@ -1,0 +1,13 @@
+---
+  chain:
+    -
+      name: "nfs_spec"
+      ref: "bitesize.nfs_spec"
+      params:
+        payload: "{{payload}}"
+      on-success: "delete_cloudformation_stack"
+    -
+      name: "delete_cloudformation_stack"
+      ref: "aws.cf_delete_stack"
+      params:
+        stack_name_or_id: "{{nfs_spec.result.stack_name_or_id}}"

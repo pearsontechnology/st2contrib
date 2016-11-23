@@ -1,0 +1,24 @@
+---
+  name: "nfs_create_chain"
+  runner_type: "action-chain"
+  description: "NFS cloudformation Create Stack Action Chain Workflow"
+  enabled: true
+  entry_point: "workflows/nfs_create_chain.yaml"
+  pack: "bitesize"
+  parameters:
+    payload:
+      type: "object"
+      description: "payload object from kubernetes sensor"
+    cmd:
+      type: "string"
+      description: "payload object from kubernetes sensor"
+    volsize:
+      type: "string"
+      description: "EBS Volume Size for NFS Server (GiB)"
+      position: 0
+      required: true
+    customer:
+      type: "string"
+      description: "Customer Requesting an NFS Server (ex. pulse)"
+      position: 1
+      required: true

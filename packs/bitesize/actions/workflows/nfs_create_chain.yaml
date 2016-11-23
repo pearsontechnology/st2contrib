@@ -1,0 +1,32 @@
+---
+  chain:
+    -
+      name: "nfs_spec"
+      ref: "bitesize.nfs_spec"
+      params:
+        payload: "{{payload}}"
+        volsize: "{{volsize}}"
+        customer: "{{customer}}"
+      on-success: "create_cloudformation_stack"
+    -
+      name: "create_cloudformation_stack"
+      ref: "aws.cf_create_stack"
+      params:
+        stack_name: "{{nfs_spec.result.stack_name}}"
+        template_body: "{{nfs_spec.result.template_body}}"
+        parameters: "{{nfs_spec.result.parameters}}"
+        capabilities:
+        - "CAPABILITY_IAM"
+      on-success: "get_stack_build_status"
+    -
+      name: "get_stack_build_status"
+      ref: "bitesize.get_stack_build_status"
+      params:
+        stack_name_or_id: "{{nfs_spec.result.stack_name}}"
+      on-failure: "retry_check_stack_status"
+    -
+      name: "retry_check_stack_status"
+      ref: "core.local"
+      parameters:
+        cmd: "sleep 10"
+      on-success: "get_stack_build_status"

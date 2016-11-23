@@ -1,0 +1,308 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "NFS Instance for Customer Applications",
+  "Parameters": {
+    "KeyName": {
+      "Description": "Name of an existing EC2 KeyPair to enable SSH access to the instance",
+      "MinLength" : "1",
+      "MaxLength" : "64",
+      "AllowedPattern" : "[-_ a-zA-Z0-9]*",
+      "Default" : "bitesize",
+      "Type": "String"
+    },
+    "VpcId": {
+      "Type": "String",
+      "Description": "Vpc_Id of your existing Virtual Private Cloud (VPC)"
+    },
+    "SubnetId": {
+      "Type": "String",
+      "Description": "SubnetId (aws_subnet_backend_id) of Virtual Private Cloud (VPC)"
+    },
+    "Environment": {
+      "Type": "String",
+      "Description": "Environment name for the deployment. Needs to match environment name of VPC"
+    },
+    "BackupBucket": {
+      "Type": "String",
+      "Description": "Backup Bucket used for NFS Backups"
+    },
+    "Customer": {
+      "Type": "String",
+      "Description": "Customer Requesting the NFS Server/Share"
+    },
+    "AmiId": {
+      "Type": "String",
+      "Description": "AMI You want to use (Ubuntu)"
+    },
+    "SecurityGroupId": {
+      "Type": "String",
+      "Description": "SecurityGroup to use (kubernetes_sg_id) from VPC output"
+    },
+    "InstanceType": {
+      "Type": "String",
+      "Default": "m3.medium",
+      "Description": "Instance Type"
+    },
+    "AnsibleBranch": {
+      "Type": "String",
+      "Description": "Ansible Branch"
+    },
+    "ZoneID": {
+      "Type": "String",
+      "Description": "Route53 Hosted Zone Id (kube_route53_zone_id)"
+    },
+    "NFSVolSize": {
+      "Type": "String",
+      "Description": "NFS Volume Size in GiB"
+    },
+    "SysdigKey": {
+      "Type": "String",
+      "Description": "Sysdig Key"
+    }
+  },
+  "Resources": {
+    "NfsInstance": {
+      "Type": "AWS::EC2::Instance",
+      "Metadata": {
+        "Comment": "Install a single NFS instance"
+      },
+      "Properties": {
+        "ImageId": {
+          "Ref": "AmiId"
+        },
+        "IamInstanceProfile": {
+               "Ref": "NFSInstanceProfile"
+        },
+        "EbsOptimized": "True",
+        "SecurityGroupIds": [
+          {
+            "Ref": "SecurityGroupId"
+          }
+        ],
+        "SubnetId": {
+          "Ref": "SubnetId"
+        },
+        "KeyName": {
+          "Ref": "KeyName"
+        },
+        "InstanceType": {
+          "Ref": "InstanceType"
+        },
+        "BlockDeviceMappings" : [
+          {
+            "DeviceName": "/dev/sda1",
+            "Ebs": {
+              "VolumeSize": {
+                "Ref" : "NFSVolSize"
+              }
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": {
+              "Ref": "AWS::StackId"
+            }
+          },
+          {
+            "Key": "Environment",
+            "Value": { "Ref" : "Environment"}
+          },
+          {
+            "Key": "Role",
+            "Value":  "nfs"
+          },
+          {
+            "Key": "Name",
+            "Value":{
+              "Fn::Join": [
+                "",
+                [
+                  "nfs.",{ "Ref" : "Environment"},".",{ "Ref" : "Customer"},".kube","\n"
+                ]
+              ]
+            }
+          }
+        ],
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Join": [
+              "",
+              [
+                "#cloud-config","\n",
+                "packages:","\n",
+                " - python","\n",
+                " - python-dev","\n",
+                " - python-pip","\n",
+                "","\n",
+                "write_files:","\n",
+                "-   content: |","\n",
+                "        LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlKQ1FJQkFBS0NBZnNBeStZaEpaWjFzcEp3N2l6MURPcjRiZnZzSkFhOFlTd0RRMEh2WDBxTG5MblY5QmhOClNEZnJuKzcyVjZ3MFNhV21HQ1ZHeVBzcXhqVGw1TjBibEtPMHM4SVVOSUNIS2hhWjdVNXVDcCtnQ1NlQmZFVGcKbnllLzhoN3phU0xlZnBsa3F3L3VnRXgwdStKTVFqbWgrK3R2TDBBMFVINzJFRTVDTyt1UW92MUo2Rjh0Znk1cgplMkxqK0drTEt3TkdjMm91UUhaTjU2eDFOUXB0ejhCcW9ENkZCNG1HcnB5TVBlM24zc1NlcmMvVW1zR1lrUGFxCm1pNU1ZdHlESHRwbzJ3VUlyYm94RG9xMkVMd1hFTDQ5cVNHbGxDaUovMnlHNlNqY29nS0NMRWdIZTl1VXAza1kKa2JybDZ1YnVHNlp3dlhuN0NVZzhCSFVPZDRsQWhqL2ZFb0V5YXA5bjNiaGRZYzN3L0h4UXVxYlgvTmRSUndycgpTbjNkMXpUQ2k3TENTWE5qaFRMSFF1a1h6UDFsNkYxMnVHbXdScnpoUkZhVnlxQkdGR1pXTm01ME1jVFVUWURtCk84anM3c2xMSW9JR3RrVlQrQXRWWWk1U2VSbGNzUEN0cWNDdy81VjByM1pSUko2WnQyOEszVHlHcXNMSmh2RFkKMmFwTWxZOElqZWZNZ3RWYkF6VFRaT2NNaGJiMWZ3eExtK3E5dFllYUI5Uk9ZRDloWFM3alhmVlhoMnRtSXFuagpEcVgzUWYycThnRVhYcTRLUUtTMHJMakVrbC8wTmJ1MWNUZVRkRnNCaS80ZzF5NWpWUEhtTXR1QUplQXpKc2xCClMySkpIMXhmSW9ZS1VhR3ozS0t2VE1ETDdxcnRvNDFFdWYrUk9yU2tMT3d0TTdBZWRzRUNBd0VBQVFLQ0Fmc0EKeE55RXhsQzFoRnJGTkFBdC9ISGt0L1BTTTVwWlNReUFmZkJzRjduV2Y5UWcwVktoVXdmQ3RDQzRzVDh2SUtnUgpiQ0NaYmpTcVFNSVQ4RnJXWlRXRm8wVFAwejBBdzA4ZEFMU0hwRFFvQkk2akF3TlJSL2pONXd1aEFiSkwxVGx1CnE0WnZSR29ORHRYWHdOejZHMHRkaHVaYlhCaW9wR2VhcFZXenlObjZBS1BjUG4zb0FqSWhYdGEwbEt2TjJtTDcKRXZ2bURiZEJWcHVpR0VKejhCRk15VkVydXV5a3JxcERBNThjZ1Q0Mnk4Lzg2SUZ2aC9zSmZ5M2VYdXlLN21PMgoxRnovUGtZSXNMR1pKMjQyQkZUYkUrZnNETE9Rc2c3a3JucnppYU5scmx6NzhwSUZlYlpVZys3QWwrdWowQnkwCmxtcXFuN2NRNTdLWm5NU1FMd2tGL2N1SzVkL0pObHdRSTNCd3RRaWcxendVOWdNdThWZ09ZTmt0UVVCZUF1MUwKWVBZZFpMWTIrSlVRdTBGbkRVejl4d2JNSlJnSFgrVG1EYlQrTjAwcFRLSDVsUm1adDhYZkFEdzZlSjBWcHlrYQpmRU1TL3MyWnBtK0dTZEVtYVFVSXhLU29PM3ZYOHlTeTZWUVV6dE5wQXRMeWp1Sk5pb2U5ZlZwR1BtNENTTXBZCnBXN0ppM0dFQ05wTVYvOGNFT3RHZWFqS3dxbWorTmtvWXhoTXRkK3Z4ajlQN0VtUmRSZHdqVVh4UWVGWFN1NnUKSDBwMEtwNVM0dEVXU2dmNWduNU5xQmo4TGxmYS93amFlYk03bGFrcTJnYnhYQWJqdkl2RkVwRHFhL2pMLzVrRgppNGxRdW0xVmcrcTNWcVR1U0lmYzlLMVdVSlBYWS9KQUZKMENnZjRBN2kyMnRGMjgzOTRlSGJBM20yREVRVmtqCjJyYVhNcFV0dlgxRGFGc1R2Y00vWFhYTEdnV3kyT1J3aVZKQ0pUZGNyU0pWd1p3YXFNWWtLZTh6ME1Zc2toTE0KYlkrZm04NjNzY1M1VTVRZVVuSlRUR1pNc3B4eDd3RW1SdmNZM3ZyMWVLY3NsMG01UU5ubEw2Z0U4UTlwM2ExWQpsUDUvZjlIOFlQb29lMjQvRlAzaXAzbC9OeTlqeHhMcFhJOElSNHIrQ0JNaDQxOG1Gd1RMUjNOT2VjWUxhaDRjCjF3YUpoMElNZUNjL1BnMkhKTTU1eTg1dElZUWUyK21iY3ZiQkVVdWxsWnorR2Q1WGtkTG5QamtreDlteXdJYTQKV1hLY2x2R0wrSHdzMlY5a2FZOUorV2M0MDZuNS8zemhySGRwRDIrdWRrT0tDdHhDMzR5bVZzRzdxd0tCL2dEYgpKOHNFaFgzN1pXZ3JLK1A2QkZHMnJQVmdiQllzK3JvYkkzWWRzVTZzeE56Nk9iOUF6ZXBWNFJUMm8zWU1yREpMCmYxY0F3R2RBYzAzd09HS3NlSEFnTmQ4anVUZ2FrdzdZQ3dKM0dZcUVjYVRoUlJIbitOMzllVll1NlBMYkZ5NkkKVWNTNnhORHFBRzc0aGJ6M2dKVkxQbFFMVHhUbkRkdzl6NzdPc0Ewb21hTmtvcXd1S1pLU2dyYmpiWCthVXRJaQp6YVJvQjhidEVmZEhFY2tBeS9HaDV4Qk4rYXRMaG5ZTlQwMUdWc1ljbnZDUmRWeXpRcWl4VkFjRUlMUFpMazdFClZOdVBPWmpkWHphaHJvTk9xWmFlREpKcHZlODNSTVA3cDRPUUc0ZWtMcFFLSTU3NGJjYUoyVWllMm85Q09yUHIKVWVNeHlCV2pjNnd2RGd0REFvSCtBSnVTWW0rSGR0SW5MRGFxSG5nd0NhREJqOGpSVVFzcUk3bE1zNVhiUDViSQpqSUFJYThRd2lyUmU2aDdZQ3ZweUllZTRzSmtJMU9UK255cUE0ckJ3Y1Rac2J2ajFRZ1NzVHBJZjlBbGlpemZCCkV5V3BBRm4rRS9GUUorZGNpUE5FcXNmSE1qb1RYcHk4ZHBYZFFuVU9ZMUQzWkEvVitBUE9iZklPRkJralZyTG8KYm42RHZwT1dNYThiYkRBWUFRbHlBU0hYRldDRmlzU29UZnI2bHZ5MVhrbFBKL2xQZk05TFZnZTVZdmF1TVdMYQpOdlhuZktMU3dMRlY4a0p5YUlOYWpPcWZvOTNUdkJFMDEvUnRzTmVWRzh2amMxQ0JxMFJ3dThOdm9IL1BiakFBCjl3bWY0WjludkRLa0tHZlZpMXNZMExUUXdyNzdSZmJzME0yRU40Y0NnZjBscVByc05meG1QUkRmaWxWTTIzMG4KUlNXTmdrVjFTVWk5N1NRWkNpVVk3Mk9CNUhhSExsdDhrb2RGc3VWUVhDN3dabHVQRjRFbXhDbTZoQllBeVZtTApUM2FlN3U5RE1jNDFOZjhnZEZVbldWZ2FGZ0p6dUlKOVVtS0xBU0Rxb1ZzdnRjMTJ3dWVicnFOak5hZzVaL0UvCjB1QWlhVjZRTGdPUTQ2aElZRnlDZzVSZWNNM2h5T2NWSWoxSGE4T253MSswOTEydk90Ym1XbFlCOG41MkVwWGQKV3BXa3NLak0rN2hCcFVVRU4xa29CZkFWTHZQVklqbFc3N2VjNy9tMzhvczZsZEo5RkVxK2orUVZlS1c3Mk15MwpNRFhnMGZEUHNKTjFKVjRvWDNLNXRmOWVscXgweUhoN3E4a2M4elgzRFp0cGJ0TDU5UVl5NW1mS1ZrRjlBb0g5ClRlU256bHM3Nkl4cmdYOFVVRGorVmswbDZuY3NYc3YrZ25WWGNXZFlkVWRPUGFLeUNjbUVWTmJOY0QxTmdYSjYKQTM3WXhJNHg2eG8zQjdqVWdjTFh0OWlZdE5xQTFFbFpXKytRbmxRU3ZNc094RmdEeGVqdXoyTGNLQVNaMCtmRAowQ0dKeUpoSjZjK1o3UnFDSkFGdWowRlF0L3NsL1llUDRWWTJWL3VaNUI1UEh4SnFDWDNLMFc2cDMwcGFjMGIyCnorMTEyNWEvUzJoejhxZlJJM01MbHZnODhpVjlMN08yZnBzc3FEQ0hFWFlkNEt4eG1Ib0NPM2hvYVljejg0N3kKTVgvdE9NYWtOTDZVVzZmQTlJTzBnV3Q2cWdWZlpjL1JaOGN2cHVCSjUwUXFVUjlMbjlhMDltVzg2eEtCMllVcAozSWZkbUs3UUVpNmpNeDl5VVE9PQotLS0tLUVORCBSU0EgUFJJVkFURSBLRVktLS0tLQo=","\n",
+                "    path: /root/.ssh/ro_key.b64w0","\n",
+                "-   content: |","\n",
+                "        #!/bin/sh","\n",
+                "        set -x","\n",
+                "        cd /root","\n",
+                "        git clone --branch ",{ "Ref": "AnsibleBranch" }," --single-branch git@github.com:pearsontechnology/ansible-roles.git aws","\n",
+                "        cd /root","\n",
+                "        pip install -q -r ./aws/requirements.txt","\n",
+                "        mkdir -p /etc/ansible","\n",
+                "        python /root/aws/inventory/ec2_pull.py > /dev/null","\n",
+                "        ansible-playbook -vv aws/site_pull.yaml --extra-vars 'region=",{ "Ref": "AWS::Region" }," stack_name=",{ "Ref": "AWS::StackName" }," ebs_vol_size=",{ "Ref": "NFSVolSize" }," sysdig_customer_id=",{ "Ref": "SysdigKey" },"' $@","\n",
+                "    path: /root/ansible_pull.sh","\n",
+                "-   content: |","\n",
+                "        #!/bin/sh","\n",
+                "        export CUSTOMER=",{ "Ref" : "Customer"},"","\n",
+                "        export NFS_BACKUP_BUCKET=",{ "Ref" : "BackupBucket"},"","\n",
+                "        export ENVIRONMENT=",{ "Ref" : "Environment"},"","\n",
+                "    path: /root/env.sh","\n",
+                "    permissions: '0755'","\n",
+                "","\n",
+                "runcmd:","\n",
+                " - export PATH=\"/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH\"","\n",
+                " - ssh-keyscan github.com >> ~/.ssh/known_hosts","\n",
+                " - base64 -d /root/.ssh/ro_key.b64w0 > /root/.ssh/id_rsa && chmod 0600 /root/.ssh/id_rsa","\n",
+                " - (crontab -l | grep \"/usr/local/bin/backup-nfs.sh\" > /dev/null 2>&1) || { crontab -l; echo \"0,30 * * * * /usr/local/bin/backup-nfs.sh backup\"; } | crontab -","\n",
+                " - sh /root/ansible_pull.sh","\n",
+                " - cfn-init -v --stack ",{ "Ref": "AWS::StackName" }," --resource Ec2Instance --region ",{ "Ref": "AWS::Region" },"\n",
+                " - cfn-signal -e $? --stack ",{ "Ref": "AWS::StackName" }," --resource Ec2Instance --region ",{ "Ref": "AWS::Region" },"\n",
+                "","\n",
+                "output: { all: '| tee -a /var/log/cloud-init-output.log' }","\n"
+              ]
+            ]
+          }
+        }
+      }
+    },
+    "NFSServerRole": {
+         "Type": "AWS::IAM::Role",
+         "Properties": {
+            "AssumeRolePolicyDocument": {
+               "Version" : "2012-10-17",
+               "Statement": [ {
+                  "Effect": "Allow",
+                  "Principal": {
+                     "AWS": "*"
+                  },
+                  "Action": [ "sts:AssumeRole" ]
+               } ]
+            },
+            "Path": "/"
+         }
+      },
+      "S3RolePolicy": {
+         "Type": "AWS::IAM::Policy",
+         "Properties": {
+            "PolicyName" : "nfs-server-s3-policy",
+            "PolicyDocument": {
+               "Version" : "2012-10-17",
+               "Statement": [
+                 {
+                    "Effect": "Allow",
+                    "Action": ["s3:*"],
+                    "Resource": [
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "arn:aws:s3:::kubernetes-bite-vpc-",{ "Ref" : "Environment" },
+                          ]
+                        ]
+                      },
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "arn:aws:s3:::kubernetes-bite-vpc-",{ "Ref" : "Environment" },"/*"
+                          ]
+                        ]
+                      },
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "arn:aws:s3:::",{ "Ref" : "BackupBucket" },"/",{ "Ref" : "Environment"},
+                          ]
+                        ]
+                      },
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "arn:aws:s3:::",{ "Ref" : "BackupBucket" },"/",{ "Ref" : "Environment"}, "/*"
+                          ]
+                        ]
+                      }
+                    ]
+                 },
+                 {
+                    "Effect":"Allow",
+                    "Action":["ec2:*"],
+                    "Resource":["*"]
+                 }
+               ]
+            },
+            "Roles": [ { "Ref": "NFSServerRole" } ]
+         }
+      },
+      "R53RolePolicy": {
+          "Type": "AWS::IAM::Policy",
+          "Properties": {
+             "PolicyName" : "nfs-route53-policy",
+             "PolicyDocument": {
+                "Version" : "2012-10-17",
+                "Statement": [
+                  {
+                     "Effect": "Allow",
+                     "Action": ["route53:ChangeResourceRecordSets","route53:GetHostedZone"],
+                     "Resource": [
+                       {
+                         "Fn::Join": [
+                           "",
+                           [
+                             "arn:aws:route53:::hostedzone/",{ "Ref" : "ZoneID" },
+                           ]
+                         ]
+                       }
+                     ]
+                  },
+                  {
+                     "Effect":"Allow",
+                     "Action":["route53:Get*","route53:List*"],
+                     "Resource":["*"]
+                  }
+                ]
+             },
+             "Roles": [ { "Ref": "NFSServerRole" } ]
+          }
+      },
+      "NFSInstanceProfile": {
+         "Type": "AWS::IAM::InstanceProfile",
+         "Properties": {
+            "Path": "/",
+            "Roles": [ { "Ref": "NFSServerRole" } ]
+         }
+      }
+  },
+  "Outputs": {
+    "InstanceId": {
+      "Value": {
+        "Ref": "NfsInstance"
+      },
+      "Description": "Instance Id of newly created instance"
+    },
+    "Subnet": {
+      "Value": {
+        "Ref": "SubnetId"
+      },
+      "Description": "Subnet of instance"
+    },
+    "SecurityGroupId": {
+      "Value": {
+        "Ref": "SecurityGroupId"
+      },
+      "Description": "Security Group of instance"
+    }
+  }
+}
