@@ -1,0 +1,22 @@
+---
+name: "mongo_create"
+pack: "bitesize"
+description: "Check for Mongo cloudformation events to manage from kubernetes thirdpartyresource sensor"
+enabled: true
+
+trigger:
+  type: "kubernetes.thirdpartyobject"
+  parameters: {}
+
+criteria:
+  trigger.resource:
+    type: "contains"
+    pattern: "ADDED"
+  trigger.labels.type:
+    type: "equals"
+    pattern: "mongo"
+
+action:
+  ref: "bitesize.mongo_create_chain"
+  parameters:
+    payload: "{{trigger}}"
