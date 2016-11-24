@@ -37,24 +37,43 @@ bitesize.new_setup_jenkins:
         cwd: <% $.jenkdir %>
         cmd: ssh-keygen -b 2048 -C "<% $.project %> jenkins" -f <% $.project %>-key -q -N ''
       publish:
-        private_key: "<% $.jenkdir %>/<% $.project %>-key"
-        public_key: "<% $.jenkdir %>/<% $.project %>-key.pub"
+        private_key_location: "<% $.jenkdir %>/<% $.project %>-key"
+        public_key_location: "<% $.jenkdir %>/<% $.project %>-key.pub"
+      on-success:
+        - get_priv_key
+    get_priv_key:
+      action: core.local
+      input:
+        cmd: cat <% $.private_key_location %>
+      publish:
+        private_key_contents: <% task(get_priv_key).result.stdout %>
+      on-success:
+        - get_pub_key
+    get_pub_key:
+      action: core.local
+      input:
+        cmd: cat <% $.public_key_location %>
+      publish:
+        public_key_contents: <% task(get_pub_key).result.stdout %>
       on-success:
         - get_default_domain
     get_default_domain:
       action: consul.get
       input:
         key: "bitesize/defaults/defaultdomain"
-      publish: 
-        default_domain: <% coalesce(task(get_default_domain).result.result.Value, "prsn-dev.io") %>
+      publish:
+        #default_domain: <% task(get_default_domain).result.result.Value.switch($.-isEmpty() => ) %>
+        #default_domain: <% coalesce(task(get_default_domain).result.result.Value, "prsn-dev.io") %>
+        default_domain: <% switch(task(get_default_domain).result.get(result) => task(get_default_domain).result.get(result).Value, 1 => "prsn-dev.io") %>
       on-success:
         - get_jenkins_version
     get_jenkins_version:
       action: consul.get
       input:
         key: "bitesize/defaults/jenkinsversion"
-      publish: 
-        jenkins_version: <% coalesce(task(get_default_domain).result.result.Value, "3.4.28") %>
+      publish:
+        jenkins_version: <% switch(task(get_jenkins_version).result.get(result) => task(get_jenkins_version).result.get(result).Value, 1 => "3.4.28") %>
+        #jenkins_version: <% coalesce(task(get_jenkins_version).result.result.Value, "3.4.28") %>
       on-success:
         - update_jenkins
     update_jenkins:
@@ -62,7 +81,7 @@ bitesize.new_setup_jenkins:
       input:
         templatedir: "<% $.jenkdir %>/jenkins/config"
         namespace: <% $.namespace %>
-        private_key: <% $.private_key %>
+        private_key: <% $.private_key_location %>
         jenkins_host: "<% $.project %>.<% $.default_domain %>"
         jenkins_admin: "admin"
         jenkins_version: <% $.jenkins_version %>
@@ -72,6 +91,7 @@ bitesize.new_setup_jenkins:
         jnk_svc_config: <% task(update_jenkins).result.result.jnk %>
         jnk_ing_config: <% task(update_jenkins).result.result.ing %>
         jnk_dep_config: <% task(update_jenkins).result.result.dep %>
+        jenkins_password: <% task(update_jenkins).result.result.jenkins_password %>
       on-success:
         - delete_tmp_dir
     delete_tmp_dir:
@@ -106,3 +126,44 @@ bitesize.new_setup_jenkins:
       input:
         namespace: <% $.namespace %>
         body: <% $.jnk_dep_config %>
+      on-success:
+        - save_priv_key
+    save_priv_key:
+      action: consul.put
+      input:
+        key: "bitesize/<% $.project %>/<% $.namespace %>/ssh_private_key"
+        value: <% $.private_key_contents %>
+      on-success:
+        - save_pub_key
+    save_pub_key:
+      action: consul.put
+      input:
+        key: "bitesize/<% $.project %>/<% $.namespace %>/ssh_public_key"
+        value: <% $.public_key_contents %>
+      on-success:
+        - save_jenkins_host
+    save_jenkins_host:
+      action: consul.put
+      input:
+        key: "bitesize/<% $.project %>/<% $.namespace %>/jenkins_host"
+        value: "<% $.project %>.<% $.default_domain %>"
+      on-success:
+        - save_jenkins_pass
+    save_jenkins_pass:
+      action: consul.put
+      input:
+        key: "bitesize/<% $.project $>/<$ $.namespace %>/jenkins_password"
+        value: <% $.jenkins_password %>
+      on-success:
+        - delete_unapproved
+    delete_unapproved:
+      action: consul.delete
+      input:
+        key: "bitesize/<% $.project %>/<% $.namespace %>/unapproved"
+      on-complete:
+        - mark_as_done
+    mark_as_done:
+      action: consul.put
+      input:
+        key: "bitesize/<% $.project %>/<% $.namespace %>/setup"
+        value: <% $.current_date %>

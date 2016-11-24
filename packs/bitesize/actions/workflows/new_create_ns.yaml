@@ -68,8 +68,9 @@ bitesize.new_create_ns:
       input:
         key: "bitesize/<% $.project %>/<% $.namespace %>/unapproved"
       on-complete:
-        - notify_customer
-    notify_customer:
-      action: core.local
+        - mark_as_done
+    mark_as_done:
+      action: consul.put
       input:
-        cmd: echo done
+        key: "bitesize/<% $.project %>/<% $.namespace %>/setup"
+        value: <% $.current_date %>

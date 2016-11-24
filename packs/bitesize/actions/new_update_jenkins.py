@@ -70,5 +70,7 @@ class UpdateJenkins(Action):
       thefile = templatedir + "/" + thefile
       output[key] = self.update_vars(thefile)
 
+    output['jenkins_password'] = self.allvars['jenkins_admin_password']
+
     #print json.dumps(output, sort_keys=True, indent=2)
     return output
