@@ -1,0 +1,31 @@
+version: '2.0'
+bitesize.new_create_project:
+  description: take a project or namespace name and set the namespaces up
+  type: direct
+  input:
+    - project
+  tasks:
+    get_ns_list:
+      action: consul.get
+      input:
+        key: bitesize/<% $.project %>/
+        recurse: True
+      publish:
+        nslist: <% dict(data=>task(get_ns_list).result.result) %>
+      on-complete:
+        - parse_ns_list
+    parse_ns_list:
+      action: bitesize.new_parse_ns_list 
+      input:
+        nslist: <% $.nslist %>
+      publish:
+        namespaces: <% task(parse_ns_list).result.result %>
+      on-success:
+        - setup_namespaces
+    setup_namespaces:
+      with-items: namespace in <% $.namespaces %>
+      concurrency: 5
+      action: bitesize.new_create_ns
+      input:
+        project: <% $.project %>
+        namespace: <% $.namespace %>

@@ -1,0 +1,9 @@
+name: new_parse_ns_list
+pack: "bitesize"
+runner_type: run-python
+description: "given a list of consul keys, parse unapproved namespaces"
+enabled: true
+entry_point: "new_parse_ns_list.py"
+parameters:
+  nslist:
+    type: object
