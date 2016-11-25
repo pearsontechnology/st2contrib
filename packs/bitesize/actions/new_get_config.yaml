@@ -1,0 +1,6 @@
+name: get_config
+pack: "bitesize"
+runner_type: run-python
+description: "get st2 config for use in workflows"
+enabled: true
+entry_point: "new_get_config.py"
