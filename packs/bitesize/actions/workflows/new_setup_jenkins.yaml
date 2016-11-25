@@ -6,6 +6,13 @@ bitesize.new_setup_jenkins:
     - project
     - namespace
   tasks:
+    get_config:
+      action: bitesize.get_config
+      publish:
+        config: <% task(get_config).result.result %>
+        environment: <% task(get_config).result.result.environment %>
+      on-success:
+        - random_dir
     random_dir:
       action: core.local
       input:
@@ -82,7 +89,7 @@ bitesize.new_setup_jenkins:
         templatedir: "<% $.jenkdir %>/jenkins/config"
         namespace: <% $.namespace %>
         private_key: <% $.private_key_location %>
-        jenkins_host: "<% $.project %>.<% $.default_domain %>"
+        jenkins_host: "<% $.project %>.<% $.environment %>.<% $.default_domain %>"
         jenkins_admin: "admin"
         jenkins_version: <% $.jenkins_version %>
         gitrepo: <% $.gitrepo %>
@@ -127,6 +134,14 @@ bitesize.new_setup_jenkins:
         namespace: <% $.namespace %>
         body: <% $.jnk_dep_config %>
       on-success:
+        - setup_route53
+    setup_route53:
+      action: aws.r53_zone_add_cname
+      input:
+        zone: "<% $.default_domain %>."
+        name: "<% $.project %>.<% $.environment %>.<% $.default_domain %>"
+        value: "lb.<% $.environment %>.<% $.default_domain %>"
+      on-success:
         - save_priv_key
     save_priv_key:
       action: consul.put
@@ -152,18 +167,5 @@ bitesize.new_setup_jenkins:
     save_jenkins_pass:
       action: consul.put
       input:
-        key: "bitesize/<% $.project $>/<$ $.namespace %>/jenkins_password"
+        key: "bitesize/<% $.project %>/<% $.namespace %>/jenkins_password"
         value: <% $.jenkins_password %>
-      on-success:
-        - delete_unapproved
-    delete_unapproved:
-      action: consul.delete
-      input:
-        key: "bitesize/<% $.project %>/<% $.namespace %>/unapproved"
-      on-complete:
-        - mark_as_done
-    mark_as_done:
-      action: consul.put
-      input:
-        key: "bitesize/<% $.project %>/<% $.namespace %>/setup"
-        value: <% $.current_date %>
