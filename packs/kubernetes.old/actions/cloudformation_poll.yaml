@@ -1,7 +1,7 @@
 ---
   name: "cloudformation_poll"
   entry_point: "cloudformation_poll.py"
-  pack: "bitesize"
+  pack: "kubernetes"
   description: "Poll Cloudformation Stack to determin status."
   enabled: true
   runner_type: run-python
@@ -11,3 +11,5 @@
       description: "Message to print."
       required: true
       position: 0
+
+
