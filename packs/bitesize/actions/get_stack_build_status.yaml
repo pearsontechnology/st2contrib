@@ -1,7 +1,7 @@
 ---
   name: "get_stack_build_status"
   entry_point: "get_stack_build_status.py"
-  pack: "kubernetes"
+  pack: "bitesize"
   description: "Get Stack Build Status"
   enabled: true
   runner_type: run-python
