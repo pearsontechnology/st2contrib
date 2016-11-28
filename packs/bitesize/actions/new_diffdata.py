@@ -6,10 +6,12 @@ from string import split
 class diffData(Action):
 
   def run(self, src, dst):
-  # only copy items that don't exist in dst already
 
     output = []
     
+    print json.dumps(src, sort_keys=True, indent=2)
+    print json.dumps(dst, sort_keys=True, indent=2)
+
     dnames = []
     slist = []
 

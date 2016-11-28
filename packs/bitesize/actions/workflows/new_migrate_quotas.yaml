@@ -1,13 +1,13 @@
 version: '2.0'
-bitesize.new_migrate_namespace:
-  description: migrate namespaces from src to dst
+bitesize.new_migrate_quotas:
+  description: migrate all quotas from src to dst
   type: direct
   input:
     - src
     - dst
   tasks:
     get_src_data:
-      action: kubernetes.listCoreV1Namespace
+      action: kubernetes.listCoreV1ResourceQuotaForAllNamespaces
       input:
         config_override: <% $.src %>
       publish:
@@ -15,7 +15,7 @@ bitesize.new_migrate_namespace:
       on-success:
         - get_dst_data
     get_dst_data:
-      action: kubernetes.listCoreV1Namespace
+      action: kubernetes.listCoreV1ResourceQuotaForAllNamespaces
       input:
         config_override: <% $.dst %>
       publish:
@@ -49,7 +49,8 @@ bitesize.new_migrate_namespace:
         - apply_diff
     apply_diff:
       with-items: entry in <% $.diff %>
-      action: kubernetes.createCoreV1Namespace
+      action: kubernetes.createCoreV1NamespacedResourceQuota
       input:
         config_override: <% $.dst %>
+        namespace: <% $.entry.metadata.namespace %>
         body: <% $.entry %>

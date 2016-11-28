@@ -1,0 +1,16 @@
+---
+  name: "new_migrate_deployments"
+  pack: "bitesize"
+  description: "migrate deployments"
+  runner_type: "mistral-v2"
+  enabled: true
+  entry_point: "workflows/new_migrate_deployments.yaml"
+  parameters:
+    src:
+      type: "object"
+      description: "src cluster - config"
+      required: true
+    dst:
+      type: "object"
+      description: "dst cluster - config"
+      required: true

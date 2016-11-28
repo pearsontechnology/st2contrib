@@ -30,14 +30,14 @@ class getConfig(Action):
             del item['metadata']['deletionGracePeriodSeconds']
           if "deletionTimestamp" in item['metadata']:
             del item['metadata']['deletionTimestamp']
-          if "annotations" in item['metadata']:
-            del item['metadata']['annotations']
-          if "generateName" in item['metadata']:
-            del item['metadata']['generateName']
-          if "namespace" in item['metadata']:
-            del item['metadata']['namespace']
-          if "ownerReferences" in item['metadata']:
-            del item['metadata']['ownerReferences']
+          #if "annotations" in item['metadata']:
+          #  del item['metadata']['annotations']
+          #if "generateName" in item['metadata']:
+          #  del item['metadata']['generateName']
+          #if "namespace" in item['metadata']:
+          #  del item['metadata']['namespace']
+          #if "ownerReferences" in item['metadata']:
+          #  del item['metadata']['ownerReferences']
           if "finalizers" in item['metadata']:
             del item['metadata']['finalizers']
           # if "labels" in item['metadata']:
@@ -48,7 +48,7 @@ class getConfig(Action):
           if "template" in item['spec']:
             if "spec" in item['spec']['template']:
               if "generation" in item['spec']['template']['spec']:
-                del item['spec']['template']['spec']['securityContext']
+                del item['spec']['template']['spec']['generation']
               if "dnsPolicy" in item['spec']['template']['spec']:
                 del item['spec']['template']['spec']['dnsPolicy']
               if "terminationGracePeriodSeconds" in item['spec']['template']['spec']:

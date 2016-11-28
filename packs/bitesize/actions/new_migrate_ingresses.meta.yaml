@@ -1,0 +1,16 @@
+---
+  name: "new_migrate_ingresses"
+  pack: "bitesize"
+  description: "migrate ingresses"
+  runner_type: "mistral-v2"
+  enabled: true
+  entry_point: "workflows/new_migrate_ingresses.yaml"
+  parameters:
+    src:
+      type: "object"
+      description: "src cluster - config"
+      required: true
+    dst:
+      type: "object"
+      description: "dst cluster - config"
+      required: true
