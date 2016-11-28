@@ -1,0 +1,13 @@
+name: new_diffdata
+pack: "bitesize"
+runner_type: run-python
+description: "compare source and destination data to create a delta"
+enabled: true
+entry_point: "new_diffdata.py"
+parameters:
+  src:
+    type: "array"
+    required: true
+  dst:
+    type: "array"
+    required: true

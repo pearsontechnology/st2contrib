@@ -1,0 +1,20 @@
+version: '2.0'
+bitesize.new_migrate_tpr:
+  description: migrate all tpr instances from src to dst
+  type: direct
+  input:
+    - src
+    - dst
+  tasks:
+    migrate_objects:
+      action: bitesize.new_migrate_tpr_objects
+      input:
+        src: <% $.src %>
+        dst: <% $.dst %>
+      on-success:
+        - migrate_instances
+    migrate_instances:
+      action: bitesize.new_migrate_tpr_instances
+      input:
+        src: <% $.src %>
+        dst: <% $.dst %>

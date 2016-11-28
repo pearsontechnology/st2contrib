@@ -6,7 +6,7 @@ class GetStackBuildStatus(Action):
     def run(self, stack_name_or_id):
         region = self.config['region']
 
-        stack_states = ['CREATE_COMPLETE', 'CREATE_FAILED', 'ROLLBACK_COMPLETE']
+        stack_states = ['CREATE_COMPLETE']
 
         client = boto3.client('cloudformation', region_name=region)
 

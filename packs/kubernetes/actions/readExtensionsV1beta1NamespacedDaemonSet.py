@@ -4,7 +4,7 @@ from st2actions.runners.pythonrunner import Action
 
 class readExtensionsV1beta1NamespacedDaemonSet(Action):
 
-    def run(self,name,namespace,exact=None,export=None,pretty=None):
+    def run(self,name,namespace,config_override=None,exact=None,export=None,pretty=None):
 
         myk8s = k8s.K8sClient(self.config)
 
@@ -17,6 +17,8 @@ class readExtensionsV1beta1NamespacedDaemonSet(Action):
           args['namespace'] = namespace
         else:
           return (False, "namespace is a required parameter")
+        if config_override is not None:
+          args['config_override'] = config_override
         if exact is not None:
           args['exact'] = exact
         if export is not None:

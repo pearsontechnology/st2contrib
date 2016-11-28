@@ -4,7 +4,7 @@ from st2actions.runners.pythonrunner import Action
 
 class createCoreV1PersistentVolume(Action):
 
-    def run(self,body,pretty=None):
+    def run(self,body,config_override=None,pretty=None):
 
         myk8s = k8s.K8sClient(self.config)
 
@@ -13,6 +13,8 @@ class createCoreV1PersistentVolume(Action):
           args['body'] = body
         else:
           return (False, "body is a required parameter")
+        if config_override is not None:
+          args['config_override'] = config_override
         if pretty is not None:
           args['pretty'] = pretty
 

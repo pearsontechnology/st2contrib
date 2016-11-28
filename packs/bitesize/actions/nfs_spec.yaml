@@ -9,7 +9,3 @@
       type: object
     config:
       type: object
-    customer:
-      type: string
-    volzie:
-      type: string

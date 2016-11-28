@@ -12,13 +12,3 @@
     cmd:
       type: "string"
       description: "payload object from kubernetes sensor"
-    volsize:
-      type: "string"
-      description: "EBS Volume Size for NFS Server (GiB)"
-      position: 0
-      required: true
-    customer:
-      type: "string"
-      description: "Customer Requesting an NFS Server (ex. pulse)"
-      position: 1
-      required: true

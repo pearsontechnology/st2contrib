@@ -214,7 +214,7 @@
                         "Fn::Join": [
                           "",
                           [
-                            "arn:aws:s3:::kubernetes-bite-vpc-",{ "Ref" : "Environment" },"/*"
+                            "arn:aws:s3:::kubernetes-bite-vpc-",{ "Ref" : "Environment" },"/*",
                           ]
                         ]
                       },
@@ -222,7 +222,7 @@
                         "Fn::Join": [
                           "",
                           [
-                            "arn:aws:s3:::",{ "Ref" : "BackupBucket" },"/",{ "Ref" : "Environment"},
+                            "arn:aws:s3:::",{ "Ref" : "BackupBucket" },
                           ]
                         ]
                       },
@@ -230,7 +230,7 @@
                         "Fn::Join": [
                           "",
                           [
-                            "arn:aws:s3:::",{ "Ref" : "BackupBucket" },"/",{ "Ref" : "Environment"}, "/*"
+                            "arn:aws:s3:::",{ "Ref" : "BackupBucket" },"/*",
                           ]
                         ]
                       }

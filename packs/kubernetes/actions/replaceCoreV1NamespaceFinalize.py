@@ -4,7 +4,7 @@ from st2actions.runners.pythonrunner import Action
 
 class replaceCoreV1NamespaceFinalize(Action):
 
-    def run(self,body,name,pretty=None):
+    def run(self,body,name,config_override=None,pretty=None):
 
         myk8s = k8s.K8sClient(self.config)
 
@@ -17,6 +17,8 @@ class replaceCoreV1NamespaceFinalize(Action):
           args['name'] = name
         else:
           return (False, "name is a required parameter")
+        if config_override is not None:
+          args['config_override'] = config_override
         if pretty is not None:
           args['pretty'] = pretty
 

@@ -1,0 +1,39 @@
+---
+  name: "new_migrate_cluster"
+  pack: "bitesize"
+  description: "migrate a cluster"
+  runner_type: "mistral-v2"
+  enabled: true
+  entry_point: "workflows/new_migrate_cluster.yaml"
+  parameters:
+      #default: {'kubernetes_api_url': 'https://master-a.andrew.kube', 'user': 'admin', 'password': 'andypass'}
+    src_host:
+      type: "string"
+      description: "src kubernetes master url (https:// required)"
+      default: "https://master-a.andrew.kube"
+      required: true
+    src_user:
+      type: "string"
+      description: "src kubernetes user"
+      default: "admin"
+      required: true
+    src_pass:
+      type: "string"
+      description: "src kubernetes pass"
+      default: "andypass"
+      required: true
+    dst_host:
+      type: "string"
+      description: "dst kubernetes master url (https:// required)"
+      default: "https://master-b.andrew.kube"
+      required: true
+    dst_user:
+      type: "string"
+      description: "dst kubernetes user"
+      default: "admin"
+      required: true
+    dst_pass:
+      type: "string"
+      description: "dst kubernetes pass"
+      default: "andypass"
+      required: true

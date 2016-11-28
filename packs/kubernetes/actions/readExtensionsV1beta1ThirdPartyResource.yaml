@@ -9,6 +9,9 @@ parameters:
         type: string
         description: "name of the ThirdPartyResource"
         required: True
+    config_override:
+        type: object
+        description: "override stackstorm config"
     exact:
         type: boolean
         description: "Should the export be exact.  Exact export maintains cluster-specific fields like 'Namespace'"

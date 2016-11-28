@@ -1,0 +1,12 @@
+---
+  name: "new_create_project"
+  runner_type: "mistral-v2"
+  description: "Setup all kubernetes namespace in a project once approved"
+  enabled: true
+  entry_point: "workflows/new_create_project.yaml"
+  pack: "bitesize"
+  parameters:
+    project:
+      type: "string"
+      description: "project name"
+      required: true

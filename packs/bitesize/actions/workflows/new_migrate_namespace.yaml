@@ -1,0 +1,55 @@
+version: '2.0'
+bitesize.new_migrate_namespace:
+  description: migrate namespaces from src to dst
+  type: direct
+  input:
+    - src
+    - dst
+  tasks:
+    get_src_data:
+      action: kubernetes.listCoreV1Namespace
+      input:
+        config_override: <% $.src %>
+      publish:
+        src_data: <% task(get_src_data).result.result %>
+      on-success:
+        - get_dst_data
+    get_dst_data:
+      action: kubernetes.listCoreV1Namespace
+      input:
+        config_override: <% $.dst %>
+      publish:
+        dst_data: <% task(get_dst_data).result.result %>
+      on-success:
+        - clean_src_data
+    clean_src_data:
+      action: bitesize.new_cleandata
+      input:
+        data: <% $.src_data %>
+      publish:
+        src_data_clean: <% task(clean_src_data).result.result %>
+      on-success:
+        - clean_dst_data
+    clean_dst_data:
+      action: bitesize.new_cleandata
+      input:
+        data: <% $.dst_data %>
+      publish:
+        dst_data_clean: <% task(clean_dst_data).result.result %>
+      on-success:
+        - get_diff
+    get_diff:
+      action: bitesize.new_diffdata
+      input:
+        src: <% $.src_data_clean %>
+        dst: <% $.dst_data_clean %>
+      publish:
+        diff: <% task(get_diff).result.result %>
+      on-success:
+        - apply_diff
+    apply_diff:
+      with-items: entry in <% $.diff %>
+      action: kubernetes.createCoreV1Namespace
+      input:
+        config_override: <% $.dst %>
+        body: <% $.entry %>

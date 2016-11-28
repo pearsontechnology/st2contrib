@@ -1,0 +1,16 @@
+---
+  name: "new_migrate_tpr_instances"
+  pack: "bitesize"
+  description: "migrate tpr instances"
+  runner_type: "mistral-v2"
+  enabled: true
+  entry_point: "workflows/new_migrate_tpr_instances.yaml"
+  parameters:
+    src:
+      type: "object"
+      description: "src cluster - config"
+      required: true
+    dst:
+      type: "object"
+      description: "dst cluster - config"
+      required: true

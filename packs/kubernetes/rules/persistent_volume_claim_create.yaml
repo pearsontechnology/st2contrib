@@ -1,0 +1,21 @@
+---
+name: "kubernetes_persistent_volume_claim_create"
+pack: "kubernetes"
+description: "Check for new persistent volumne claim"
+enabled: true
+
+trigger:
+  type: "kubernetes.persistentvolumeclaims"
+
+criteria:
+  trigger.resource:
+    type: "contains"
+    pattern: "ADDED"
+  trigger.object_kind:
+    type: "equals"
+    pattern: "PersistentVolumeClaim"
+
+action:
+  ref: "kubernetes.register_pvc"
+  parameters:
+    payload: "{{trigger}}"

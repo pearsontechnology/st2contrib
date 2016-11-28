@@ -1,9 +1,9 @@
 ---
-  name: "db_create_chain"
+  name: "pv_delete_chain"
   runner_type: "action-chain"
-  description: "RDS Create Action Chain Workflow"
+  description: "Persistent Volumn Delete Action Chain Workflow"
   enabled: true
-  entry_point: "workflows/db_create_chain.yaml"
+  entry_point: "workflows/pv_delete_chain.yaml"
   pack: "bitesize"
   parameters:
     payload:

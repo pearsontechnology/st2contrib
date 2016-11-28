@@ -37,7 +37,7 @@
       on-success: "get_stack_events"
     -
       name: "get_stack_output"
-      ref: "kubernetes.cf_output"
+      ref: "bitesize.cf_output"
       params:
         stack_name_or_id: "{{mongo_spec.result.stack_name}}"
       on-success: "init_replicaset"

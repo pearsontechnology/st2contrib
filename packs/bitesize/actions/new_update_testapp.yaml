@@ -1,0 +1,11 @@
+---
+  name: "new_update_testapp"
+  entry_point: "new_update_testapp.py"
+  pack: "bitesize"
+  description: "Create testapp configuration"
+  enabled: true
+  runner_type: "run-python"
+  parameters:
+    templatedir:
+      type: "string"
+      required: true

@@ -1,0 +1,104 @@
+version: '2.0'
+bitesize.new_setup_testapp:
+  description: setup testapp
+  type: direct
+  tasks:
+    get_config:
+      action: bitesize.get_config
+      publish:
+        config: <% task(get_config).result.result %>
+        environment: <% task(get_config).result.result.environment %>
+      on-success:
+        - random_dir
+    random_dir:
+      action: core.local
+      input:
+        cmd: "echo $$"
+      publish:
+        tmpdir: "/tmp/testapp.<% task(random_dir).result.stdout %>"
+      on-success:
+        - get_testapp
+    get_testapp:
+      action: git.clone
+      input:
+        destination: <% $.tmpdir %>
+        source: "git@github.com:AndyMoore111/test-app-v2.git"
+        hosts: "localhost"
+      on-success:
+        - update_testapp
+    update_testapp:
+      action: bitesize.new_update_testapp
+      input:
+        templatedir: "<% $.tmpdir %>/kube"
+      publish:
+        svc_config: <% task(update_testapp).result.result.svc %>
+        ing_config: <% task(update_testapp).result.result.ing %>
+        dep_config: <% task(update_testapp).result.result.dep %>
+      on-success:
+        - delete_tmp_dir
+    delete_tmp_dir:
+      action: core.local
+      input:
+        cmd: "rm -rf <% $.tmpdir %>"
+      on-success:
+        - create_ns1_template
+    create_ns1_template:
+      action: bitesize.new_create_ns_template
+      input:
+        project: "test-app"
+        namespace: "test-app"
+      publish:
+        ns1_template: <% task(create_ns1_template).result.result %>
+      on-success:
+        - create_ns1
+    create_ns1:
+      action: kubernetes.createCoreV1Namespace
+      input:
+        body: <% $.ns1_template %>
+      on-success:
+        - create_ns2_template
+    create_ns2_template:
+      action: bitesize.new_create_ns_template
+      input:
+        project: "test-app"
+        namespace: "test-app-dev"
+      publish:
+        ns2_template: <% task(create_ns2_template).result.result %>
+      on-success:
+        - create_ns2
+    create_ns2:
+      action: kubernetes.createCoreV1Namespace
+      input:
+        body: <% $.ns2_template %>
+      on-success:
+        - create_svc
+    create_svc:
+      with-items: entry in <% $.svc_config %>
+      action: kubernetes.createCoreV1NamespacedService
+      input:
+        namespace: <% $.entry.metadata.namespace %>
+        body: <% $.entry %>
+      on-success:
+        - create_ing
+    create_ing:
+      with-items: entry in <% $.ing_config %>
+      action: kubernetes.createExtensionsV1beta1NamespacedIngress
+      input:
+        namespace: <% $.entry.metadata.namespace %>
+        body: <% $.entry %>
+      on-success:
+        - create_dep
+    create_dep:
+      with-items: entry in <% $.dep_config %>
+      action: kubernetes.createExtensionsV1beta1NamespacedDeployment
+      input:
+        namespace: <% $.entry.metadata.namespace %>
+        body: <% $.entry %>
+#      on-success:
+#        - setup_route53
+#    setup_route53:
+#      action: aws.r53_zone_add_cname
+#      input:
+#        zone: "<% $.default_domain %>."
+#        name: "test-app.<% $.environment %>.<% $.default_domain %>"
+#        value: "lb.<% $.environment %>.<% $.default_domain %>"

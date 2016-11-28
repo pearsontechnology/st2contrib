@@ -1,0 +1,36 @@
+---
+  chain:
+    -
+      name: "pv_spec"
+      ref: "bitesize.pv_spec"
+      params:
+        payload: "{{payload}}"
+      on-success: "get_volsize"
+    -
+      name: "get_volsize"
+      ref: "consul.get"
+      parameters:
+          key: "nfs/{{pv_spec.result.customer}}/volsize"
+          recurse: False
+        on-success: "get_host"
+      -
+        name: "get_host"
+        ref: "consul.get"
+        parameters:
+          key: "nfs/{{pv_spec.result.customer}}/host"
+          recurse: False
+        on-success: "generate_pv_body"
+      -
+        name: "generate_pv_body"
+        ref: "bitesize.generate_pv_body"
+        params:
+          volsize: "{{get_volsize.result.Value}}"
+          host: "{{get_host.result.Value}}"
+          payload: "{{payload}}"
+        on-success: "consul_put_pv_name"
+    -
+      name: "delete_persistent_volume"
+      ref: "kubernetes.deleteCoreV1PersistentVolume"
+      params:
+        body: "{}"
+        name: "{{generate_pv_body.result.name}}"

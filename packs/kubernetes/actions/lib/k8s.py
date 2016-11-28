@@ -10,12 +10,10 @@ from pyswagger.core import BaseClient
 from pyswagger.io import Request
 from pyswagger.primitives import Primitive
 
+
 from k8sbase import Client
 
 from datetime import datetime
-
-import requests
-import logging
 
 class K8sClient:
 
@@ -47,7 +45,17 @@ class K8sClient:
         # between passes, we should place them in ctx
         pass
 
+
+    def overwriteConfig(self, newconf):
+
+        for key in newconf:
+            self.config[key] = newconf[key]
+
     def runAction(self, action, **kwargs):
+
+        if "config_override" in kwargs:
+            self.overwriteConfig(kwargs['config_override'])
+            del(kwargs['config_override'])
 
         factory = Primitive()
         factory.register('string', 'int-or-string', self._encode_intOrString)
@@ -57,9 +65,8 @@ class K8sClient:
         app.prepare()
         client = Client(config=self.config, send_opt=({'verify': False}))
 
-        # hack to allow initial config against local swagger file, but redirect request to remote host
         opt=dict(
-            url_netloc = self.config['kubernetes_api_url'][8:] 
+            url_netloc = self.config['kubernetes_api_url'][8:]  # patch the url of petstore to localhost:8001
         )
 
         op = app.op[action]
@@ -80,12 +87,12 @@ if __name__ == "__main__":
 
     k8s = K8sClient(config)
 
-    #args = {'name': 'default'}
-    #resp = k8s.runAction('readCoreV1Namespace', **args)
-    #print json.dumps(resp, sort_keys=True, indent=2)
+    args = {'name': 'default'}
+    resp = k8s.runAction('readCoreV1Namespace', **args)
+    print json.dumps(resp, sort_keys=True, indent=2)
 
-    #args = {"body": {"kind": "Namespace", "apiVersion": "v1", "metadata": {"labels": {"project": "andy"}, "name": "new-stg"}}}
-    #resp = k8s.runAction('createCoreV1Namespace', **args)
+    args = {"body": {"kind": "Namespace", "apiVersion": "v1", "metadata": {"labels": {"project": "andy"}, "name": "new-stg"}}}
+    resp = k8s.runAction('createCoreV1Namespace', **args)
 
     #args = {'namespace': 'new-stg', 'body': {'type': 'Opaque', 'kind':'Secret','test':{'aaa':'YmJi'},'apiVersion':'v1','metadata':{'name':'aaa'}}}
     #args = {"namespace": "new-stg", "body": {"kind":"Secret","data":{"bbb":"YmJi"},"apiVersion":"v1","metadata":{"namespace":"new-stg","name":"bbb"}}}
@@ -96,10 +103,11 @@ if __name__ == "__main__":
 
     #resp = k8s.runAction('createCoreV1NamespacedResourceQuota', **args)
 
-    args = {"namespace": "new-prd", "body": { "kind":"Service","spec":{"ports":[{"targetPort":"80","protocol":"TCP","port":"80"}],"selector":{"name":"jenkins"}},"apiVersion":"v1","metadata":{"labels":{"name":"apt"},"namespace":"new-prd","name":"apt"}}}
+    #args = {"namespace": "new-prd", "body": { "kind":"Service","spec":{"ports":[{"targetPort":"80","protocol":"TCP","port":"80"}],"selector":{"name":"jenkins"}},"apiVersion":"v1","metadata":{"labels":{"name":"apt"},"namespace":"new-prd","name":"apt"}}}
 
-    resp = k8s.runAction('createCoreV1NamespacedService', **args)
+    #resp = k8s.runAction('createCoreV1NamespacedService', **args)
 
-    print json.dumps(resp, sort_keys=True, indent=2)
+    #print json.dumps(resp, sort_keys=True, indent=2)
 
     #print json.dumps(args, sort_keys=True, indent=2)
+

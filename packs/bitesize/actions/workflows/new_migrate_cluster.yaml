@@ -1,0 +1,77 @@
+version: '2.0'
+bitesize.new_migrate_cluster:
+  description: migrate bitesize cluster
+  type: direct
+  input:
+    - src_host
+    - src_user
+    - src_pass
+    - dst_host
+    - dst_user
+    - dst_pass
+  tasks:
+    migrate_namespaces: 
+      action: bitesize.new_migrate_namespace
+      input:
+        #src: <% $.src %>
+        #dst: <% $.dst %>
+        #src: {'kubernetes_api_url': $.src_host, 'user': $.src_user, 'password': $.src_pass}
+        #dst: {'kubernetes_api_url': $.dst_host, 'user': $.dst_user, 'password': $.dst_pass}
+        src: <% dict('kubernetes_api_url' => $.src_host, 'user' => $.src_user, 'password' => $.src_pass) %>
+        dst: <% dict('kubernetes_api_url' => $.dst_host, 'user' => $.dst_user, 'password' => $.dst_pass) %>
+      on-success:
+        - migrate_deployments
+    migrate_deployments:
+      action: bitesize.new_migrate_deployments
+      input:
+        src: <% dict('kubernetes_api_url' => $.src_host, 'user' => $.src_user, 'password' => $.src_pass) %>
+        dst: <% dict('kubernetes_api_url' => $.dst_host, 'user' => $.dst_user, 'password' => $.dst_pass) %>
+      on-success:
+        - migrate_replicationcontrollers
+    migrate_replicationcontrollers:
+      action: bitesize.new_migrate_replicationcontrollers
+      input:
+        src: <% dict('kubernetes_api_url' => $.src_host, 'user' => $.src_user, 'password' => $.src_pass) %>
+        dst: <% dict('kubernetes_api_url' => $.dst_host, 'user' => $.dst_user, 'password' => $.dst_pass) %>
+      on-success:
+        - migrate_ingresses
+    migrate_ingresses:
+      action: bitesize.new_migrate_ingresses
+      input:
+        src: <% dict('kubernetes_api_url' => $.src_host, 'user' => $.src_user, 'password' => $.src_pass) %>
+        dst: <% dict('kubernetes_api_url' => $.dst_host, 'user' => $.dst_user, 'password' => $.dst_pass) %>
+      on-success:
+        - migrate_secrets
+    migrate_secrets:
+      action: bitesize.new_migrate_secrets
+      input:
+        src: <% dict('kubernetes_api_url' => $.src_host, 'user' => $.src_user, 'password' => $.src_pass) %>
+        dst: <% dict('kubernetes_api_url' => $.dst_host, 'user' => $.dst_user, 'password' => $.dst_pass) %>
+      on-success:
+        - migrate_services
+    migrate_services:
+      action: bitesize.new_migrate_services
+      input:
+        src: <% dict('kubernetes_api_url' => $.src_host, 'user' => $.src_user, 'password' => $.src_pass) %>
+        dst: <% dict('kubernetes_api_url' => $.dst_host, 'user' => $.dst_user, 'password' => $.dst_pass) %>
+      on-success:
+        - migrate_quotas
+    migrate_quotas:
+      action: bitesize.new_migrate_quotas
+      input:
+        src: <% dict('kubernetes_api_url' => $.src_host, 'user' => $.src_user, 'password' => $.src_pass) %>
+        dst: <% dict('kubernetes_api_url' => $.dst_host, 'user' => $.dst_user, 'password' => $.dst_pass) %>
+      on-success:
+        - migrate_serviceaccounts
+    migrate_serviceaccounts:
+      action: bitesize.new_migrate_serviceaccounts
+      input:
+        src: <% dict('kubernetes_api_url' => $.src_host, 'user' => $.src_user, 'password' => $.src_pass) %>
+        dst: <% dict('kubernetes_api_url' => $.dst_host, 'user' => $.dst_user, 'password' => $.dst_pass) %>
+      on-success:
+        - migrate_pv
+    migrate_pv:
+      action: bitesize.new_migrate_pv
+      input:
+        src: <% dict('kubernetes_api_url' => $.src_host, 'user' => $.src_user, 'password' => $.src_pass) %>
+        dst: <% dict('kubernetes_api_url' => $.dst_host, 'user' => $.dst_user, 'password' => $.dst_pass) %>

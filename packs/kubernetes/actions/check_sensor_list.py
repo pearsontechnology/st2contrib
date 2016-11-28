@@ -40,8 +40,8 @@ class check_sensor_list(Action):
                 for job in jdata['result']['tasks']:
                   if job['state'] == "failed":
                       return (False, "failed %s stderr %s" % (job['name'], job['result']['stderr']))
-    
-            if runcount == 200: 
+
+            if runcount == 200:
                 return (False, "Timed out 5 mins")
 
             if jdata['status'] == "succeeded":
@@ -50,7 +50,12 @@ class check_sensor_list(Action):
             time.sleep(5)
 
         result = jdata['result']['result']
-        resname, _ = search['name'].split('.', 1)
+
+        try:
+            resname, _ = search['name'].split('.', 1)
+        except ValueError:
+            resname = search['name']
+        
         for sensor in result:
             match = "%sResource" % resname.capitalize()
             if sensor['name'] == match:

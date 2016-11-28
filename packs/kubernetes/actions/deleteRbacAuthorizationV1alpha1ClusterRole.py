@@ -4,7 +4,7 @@ from st2actions.runners.pythonrunner import Action
 
 class deleteRbacAuthorizationV1alpha1ClusterRole(Action):
 
-    def run(self,body,name,gracePeriodSeconds=None,orphanDependents=None,pretty=None):
+    def run(self,body,name,config_override=None,gracePeriodSeconds=None,orphanDependents=None,pretty=None):
 
         myk8s = k8s.K8sClient(self.config)
 
@@ -17,6 +17,8 @@ class deleteRbacAuthorizationV1alpha1ClusterRole(Action):
           args['name'] = name
         else:
           return (False, "name is a required parameter")
+        if config_override is not None:
+          args['config_override'] = config_override
         if gracePeriodSeconds is not None:
           args['gracePeriodSeconds'] = gracePeriodSeconds
         if orphanDependents is not None:

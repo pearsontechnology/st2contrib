@@ -5,6 +5,14 @@
       ref: "bitesize.nfs_spec"
       params:
         payload: "{{payload}}"
+      on-success: "delete_persistent_volumes"
+      #Need to loop through all PVs stored in consul for the NFS stack and delete them
+    -
+      name: "delete_persistent_volumes"
+      ref: "kubernetes.deleteCoreV1PersistentVolume"
+      params:
+        body: "{}"
+        name: "{{generate_pv_body.result.name}}"
       on-success: "delete_cloudformation_stack"
     -
       name: "delete_cloudformation_stack"

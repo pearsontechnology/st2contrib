@@ -5,7 +5,7 @@ description: "Check for Mongo cloudformation events to manage from kubernetes th
 enabled: true
 
 trigger:
-  type: "kubernetes.thirdpartyresources"
+  type: "kubernetes.thirdpartyobject"
   parameters: {}
 
 criteria:
@@ -14,7 +14,7 @@ criteria:
     pattern: "ADDED"
   trigger.labels.type:
     type: "equals"
-    pattern: "mongo"
+    pattern: "mongo.prsn.io"
 
 action:
   ref: "bitesize.mongo_create_chain"

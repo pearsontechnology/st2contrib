@@ -48,9 +48,9 @@ class createTPRSensor(Action):
             return (False, "Couldn't match 3PR with an api endpoint")
 
         allvars['watchurl'] = "/apis/prsn.io/v1/watch/" + pname
-        allvars['triggername'] = "thirdpartyresources"
+        allvars['triggername'] = "thirdpartyobject"
 
-        #print json.dumps(allvars, sort_keys=True, indent=2)
+        print json.dumps(allvars, sort_keys=True, indent=2)
  
         sensorpy = self.config['template_path'] +"/sensors/" + allvars['name'] + "_create.py"
         sensoryaml = self.config['template_path'] + "/sensors/" + allvars['name'] + "_create.yaml"

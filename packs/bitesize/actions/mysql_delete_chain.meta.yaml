@@ -1,9 +1,9 @@
 ---
-  name: "db_delete_chain"
+  name: "mysql_delete_chain"
   runner_type: "action-chain"
-  description: "RDS Delete Action Chain Workflow"
+  description: "RDS mysql delete action chain workflow"
   enabled: true
-  entry_point: "workflows/db_delete_chain.yaml"
+  entry_point: "workflows/mysql_delete_chain.yaml"
   pack: "bitesize"
   parameters:
     payload:

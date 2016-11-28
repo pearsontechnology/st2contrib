@@ -1,0 +1,16 @@
+---
+  name: "new_migrate_replicationcontrollers"
+  pack: "bitesize"
+  description: "migrate replication controllers"
+  runner_type: "mistral-v2"
+  enabled: true
+  entry_point: "workflows/new_migrate_replicationcontrollers.yaml"
+  parameters:
+    src:
+      type: "object"
+      description: "src cluster - config"
+      required: true
+    dst:
+      type: "object"
+      description: "dst cluster - config"
+      required: true

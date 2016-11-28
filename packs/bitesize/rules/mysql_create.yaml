@@ -1,11 +1,11 @@
 ---
-name: "rds_create"
+name: "mysql_create"
 pack: "bitesize"
-description: "Check for rds events to manage from kubernetes thirdpartyresource sensor"
+description: "Check for mysql events to manage from kubernetes thirdpartyresource sensor"
 enabled: true
 
 trigger:
-  type: "kubernetes.thirdpartyresources"
+  type: "kubernetes.thirdpartyobject"
   parameters: {}
 
 criteria:
@@ -14,9 +14,9 @@ criteria:
     pattern: "ADDED"
   trigger.labels.type:
     type: "equals"
-    pattern: "mysql"
+    pattern: "mysql.prsn.io"
 
 action:
-  ref: "bitesize.db_create_chain"
+  ref: "bitesize.mysql_create_chain"
   parameters:
     payload: "{{trigger}}"

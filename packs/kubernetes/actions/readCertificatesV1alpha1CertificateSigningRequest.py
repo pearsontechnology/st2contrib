@@ -4,7 +4,7 @@ from st2actions.runners.pythonrunner import Action
 
 class readCertificatesV1alpha1CertificateSigningRequest(Action):
 
-    def run(self,name,exact=None,export=None,pretty=None):
+    def run(self,name,config_override=None,exact=None,export=None,pretty=None):
 
         myk8s = k8s.K8sClient(self.config)
 
@@ -13,6 +13,8 @@ class readCertificatesV1alpha1CertificateSigningRequest(Action):
           args['name'] = name
         else:
           return (False, "name is a required parameter")
+        if config_override is not None:
+          args['config_override'] = config_override
         if exact is not None:
           args['exact'] = exact
         if export is not None:

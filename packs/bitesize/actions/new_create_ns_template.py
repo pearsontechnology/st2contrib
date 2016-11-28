@@ -14,7 +14,8 @@ nstemplate = {
     "metadata": {
         "name": "",
         "labels": {
-            "project": ""
+            "project": "",
+            "environment": ""
         }
     },
 }
@@ -32,5 +33,6 @@ class CreateNSTemplate(Action):
         myconf = nstemplate
         myconf['metadata']['name'] = self.namespace
         myconf['metadata']['labels']['project'] = self.project
+        myconf['metadata']['labels']['environment'] = self.config['environment']
 
         return myconf

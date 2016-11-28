@@ -12,8 +12,8 @@ criteria:
   trigger.resource:
     type: "contains"
     pattern: "DELETED"
-  trigger.labels.type:
-    type: "equals"
+  trigger.name:
+    type: "contains"
     pattern: "nfs"
 
 action:

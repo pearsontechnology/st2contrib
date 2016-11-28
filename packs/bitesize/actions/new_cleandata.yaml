@@ -1,0 +1,10 @@
+name: new_cleandata
+pack: "bitesize"
+runner_type: run-python
+description: "clean kubernetes data before migratin"
+enabled: true
+entry_point: "new_cleandata.py"
+parameters:
+  data:
+    type: "object"
+    required: true

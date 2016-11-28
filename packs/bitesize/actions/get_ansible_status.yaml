@@ -1,8 +1,8 @@
 ---
-  name: "get_stack_build_status"
-  entry_point: "get_stack_build_status.py"
-  pack: "kubernetes"
-  description: "Get Stack Build Status"
+  name: "get_ansible_status"
+  entry_point: "get_ansible_status.py"
+  pack: "bitesize"
+  description: "Get Ansible Status of NFS Instance"
   enabled: true
   runner_type: run-python
   parameters:

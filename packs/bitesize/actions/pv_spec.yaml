@@ -1,0 +1,9 @@
+---
+  name: "pv_spec"
+  entry_point: "pv_spec.py"
+  pack: "bitesize"
+  description: "Munge Kubernetes data so we can create a PV."
+  runner_type: run-python
+  parameters:
+    payload:
+      type: object

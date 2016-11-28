@@ -1,0 +1,20 @@
+---
+  name: "generate_pv_body"
+  entry_point: "generate_pv_body.py"
+  pack: "bitesize"
+  description: "Create Persistent Volume Body"
+  enabled: true
+  runner_type: run-python
+  parameters:
+    volsize:
+      type: "string"
+      description: "Volume Size for the PV to be created"
+      required: true
+      position: 0
+    host:
+      type: "string"
+      description: "NFS Host IP"
+      required: true
+      position: 0
+    payload:
+      type: object

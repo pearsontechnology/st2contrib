@@ -8,14 +8,27 @@ from st2actions.runners.pythonrunner import Action
 
 class NfsSpec(Action):
 
-    def run(self, payload, config, customer, volsize):
+    def run(self, payload, config):
 
         try:
             self.region = self.config.get('region')
             parameters_config = self.config['nfs']
-            stack_name = stack_name_or_id = payload['name'] + "-" + payload['namespace']
             template_file = self.config.get('template_path') + 'nfs.template'
             environment = self.config['environment']
+
+            customer = payload['labels']['customer']
+            if not customer:
+                msg = 'No Customer Specified in Payload.'
+                self.logger.error(msg)
+                raise Exception(msg)
+
+            volsize = payload['labels']['volsize']
+            if not volsize:
+                msg = 'No Volume Size Specified in payload.'
+                self.logger.error(msg)
+                raise Exception(msg)
+
+            stack_name = stack_name_or_id = 'nfs-' + customer + "-" + environment
 
             template_body = open(template_file, 'r').read()
 
@@ -47,9 +60,11 @@ class NfsSpec(Action):
 
         newpayload = {
             'stack_name': stack_name,
-            'stack_name_or_id': stack_name,
+            'stack_name_or_id': stack_name_or_id,
             'template_body': template_body,
             'parameters': parameters,
+            'customer': customer,
+            'volsize': volsize,
             'vpcid': vpcid
         }
 

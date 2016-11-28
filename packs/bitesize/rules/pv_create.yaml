@@ -1,0 +1,22 @@
+---
+name: "pv_create"
+pack: "bitesize"
+description: "Create PV based on kubernetes PersistentVolumeClaim sensor"
+enabled: true
+
+trigger:
+  type: "kubernetes.persistentvolumeclaims"
+  parameters: {}
+
+criteria:
+  trigger.resource:
+    type: "contains"
+    pattern: "ADDED"
+  trigger.object_kind:
+    type: "contains"
+    pattern: "PersistentVolumeClaim"
+
+action:
+  ref: "bitesize.pv_create_chain"
+  parameters:
+    payload: "{{trigger}}"

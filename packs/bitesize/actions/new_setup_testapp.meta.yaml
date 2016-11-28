@@ -1,0 +1,7 @@
+---
+  name: "new_setup_testapp"
+  runner_type: "mistral-v2"
+  description: "Setup testapp"
+  enabled: true
+  entry_point: "workflows/new_setup_testapp.yaml"
+  pack: "bitesize"

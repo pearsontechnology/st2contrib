@@ -5,8 +5,20 @@
       ref: "bitesize.nfs_spec"
       params:
         payload: "{{payload}}"
-        volsize: "{{volsize}}"
-        customer: "{{customer}}"
+      on-success: "consul_put_stack_name"
+    -
+      name: "consul_put_stack_name"
+      ref: "consul.put"
+      parameters:
+        key: "nfs/{{nfs_spec.result.customer}}/stack"
+        value: "{{nfs_spec.result.stack_name}}"
+      on-success: "consul_put_volsize"
+    -
+      name: "consul_put_volsize"
+      ref: "consul.put"
+      parameters:
+        key: "nfs/{{nfs_spec.result.customer}}/volsize"
+        value: "{{nfs_spec.result.volsize}}"
       on-success: "create_cloudformation_stack"
     -
       name: "create_cloudformation_stack"
@@ -24,9 +36,29 @@
       params:
         stack_name_or_id: "{{nfs_spec.result.stack_name}}"
       on-failure: "retry_check_stack_status"
+      on-success: "get_ansible_status"
     -
       name: "retry_check_stack_status"
       ref: "core.local"
       parameters:
         cmd: "sleep 10"
       on-success: "get_stack_build_status"
+    -
+      name: "get_ansible_status"
+      ref: "bitesize.get_ansible_status"
+      params:
+        stack_name_or_id: "{{nfs_spec.result.stack_name}}"
+      on-failure: "retry_check_ansible_status"
+      on-success: "consul_put_host"
+    -
+      name: "retry_check_ansible_status"
+      ref: "core.local"
+      parameters:
+        cmd: "sleep 20"
+      on-success: "get_ansible_status"
+    -
+      name: "consul_put_host"
+      ref: "consul.put"
+      parameters:
+        key: "nfs/{{nfs_spec.result.customer}}/host"
+        value: "{{get_ansible_status.result.private_ip_address}}"
