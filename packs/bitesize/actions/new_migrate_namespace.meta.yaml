@@ -1,0 +1,16 @@
+---
+  name: "new_migrate_namespace"
+  pack: "bitesize"
+  description: "migrate a namespace"
+  runner_type: "mistral-v2"
+  enabled: true
+  entry_point: "workflows/new_migrate_namespace.yaml"
+  parameters:
+    src:
+      type: "object"
+      description: "src cluster - config"
+      required: true
+    dst:
+      type: "object"
+      description: "dst cluster - config"
+      required: true
