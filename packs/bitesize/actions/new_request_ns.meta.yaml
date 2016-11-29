@@ -17,7 +17,6 @@
     gitrequired:
       type: "boolean"
       description: "should jenkins be setup?"
-      required: true
     gitrepo:
       type: "string"
       description: "git repo (ssh connection string) to use for jenkins. This is where .bitesize configuration files are stored. will be ignored if 'gitrequired' is false"
