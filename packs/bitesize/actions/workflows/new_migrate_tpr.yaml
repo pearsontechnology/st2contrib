@@ -1,55 +1,20 @@
 version: '2.0'
 bitesize.new_migrate_tpr:
-  description: migrate all tpr from src to dst
+  description: migrate all tpr instances from src to dst
   type: direct
   input:
     - src
     - dst
   tasks:
-    get_src_data:
-      action: kubernetes.listExtensionsV1beta1ThirdPartyResource
+    migrate_objects:
+      action: bitesize.new_migrate_tpr_objects
       input:
-        config_override: <% $.src %>
-      publish:
-        src_data: <% task(get_src_data).result.result %>
+        src: <% $.src %>
+        dst: <% $.dst %>
       on-success:
-        - get_dst_data
-    get_dst_data:
-      action: kubernetes.listExtensionsV1beta1ThirdPartyResource
+        - migrate_instances
+    migrate_instances:
+      action: bitesize.new_migrate_tpr_instances
       input:
-        config_override: <% $.dst %>
-      publish:
-        dst_data: <% task(get_dst_data).result.result %>
-      on-success:
-        - clean_src_data
-    clean_src_data:
-      action: bitesize.new_cleandata
-      input:
-        data: <% $.src_data %>
-      publish:
-        src_data_clean: <% task(clean_src_data).result.result %>
-      on-success:
-        - clean_dst_data
-    clean_dst_data:
-      action: bitesize.new_cleandata
-      input:
-        data: <% $.dst_data %>
-      publish:
-        dst_data_clean: <% task(clean_dst_data).result.result %>
-      on-success:
-        - get_diff
-    get_diff:
-      action: bitesize.new_diffdata
-      input:
-        src: <% $.src_data_clean %>
-        dst: <% $.dst_data_clean %>
-      publish:
-        diff: <% task(get_diff).result.result %>
-      on-success:
-        - apply_diff
-    apply_diff:
-      with-items: entry in <% $.diff %>
-      action: kubernetes.createExtensionsV1beta1ThirdPartyResource
-      input:
-        config_override: <% $.dst %>
-        body: <% $.entry %>
+        src: <% $.src %>
+        dst: <% $.dst %>

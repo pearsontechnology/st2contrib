@@ -1,7 +1,7 @@
 ---
-name: "rds_delete"
+name: "mysql_delete"
 pack: "bitesize"
-description: "Check for rds instances to delete using kubernetes thirdpartyresource sensor"
+description: "Check for mysql instances to delete using kubernetes thirdpartyresource sensor"
 enabled: true
 
 trigger:
@@ -17,6 +17,6 @@ criteria:
     pattern: "mysql.prsn.io"
 
 action:
-  ref: "bitesize.db_delete_chain"
+  ref: "bitesize.mysql_delete_chain"
   parameters:
     payload: "{{trigger}}"

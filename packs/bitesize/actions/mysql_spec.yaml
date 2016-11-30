@@ -1,6 +1,6 @@
 ---
-  name: "db_rds_spec"
-  entry_point: "db_rds_spec.py"
+  name: "mysql_spec"
+  entry_point: "mysql_spec.py"
   pack: "bitesize"
   description: "Munge Kubernetes data so we can create a database."
   runner_type: run-python

@@ -1,8 +1,8 @@
 ---
   chain:
     -
-      name: "cloudformation_spec"
-      ref: "kubernetes.cloudformation_spec"
+      name: "mongo_spec"
+      ref: "bitesize.mongo_spec"
       params:
         payload: "{{payload}}"
       on-success: "delete_cloudformation_stack"

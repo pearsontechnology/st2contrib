@@ -1,8 +1,8 @@
 ---
   chain:
     -
-      name: "db_rds_spec"
-      ref: "bitesize.db_rds_spec"
+      name: "mysql_spec"
+      ref: "bitesize.mysql_spec"
       params:
         payload: "{{payload}}"
       on-success: "rds_delete_database"
@@ -10,5 +10,5 @@
       name: "rds_delete_database"
       ref: "aws.rds_delete_dbinstance"
       params:
-        id: "{{db_rds_spec.result.db_name}}"
+        id: "{{mysql_spec.result.db_name}}"
         skip_final_snapshot: "true"
