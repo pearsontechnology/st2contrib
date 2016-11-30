@@ -5,7 +5,7 @@ description: "Check for rds events to manage from kubernetes thirdpartyresource 
 enabled: true
 
 trigger:
-  type: "kubernetes.thirdpartyresources"
+  type: "kubernetes.thirdpartyobject"
   parameters: {}
 
 criteria:
@@ -14,7 +14,7 @@ criteria:
     pattern: "ADDED"
   trigger.labels.type:
     type: "equals"
-    pattern: "mysql"
+    pattern: "mysql.prsn.io"
 
 action:
   ref: "bitesize.db_create_chain"

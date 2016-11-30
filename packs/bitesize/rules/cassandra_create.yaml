@@ -5,7 +5,7 @@ description: "Check for Cassandra cloudformation events to manage from kubernete
 enabled: true
 
 trigger:
-  type: "kubernetes.thirdpartyresources"
+  type: "kubernetes.thirdpartyobject"
   parameters: {}
 
 criteria:
@@ -14,7 +14,7 @@ criteria:
     pattern: "ADDED"
   trigger.labels.type:
     type: "equals"
-    pattern: "cassandra"
+    pattern: "cassandra.prsn.io"
 
 action:
   ref: "bitesize.cassandra_create_chain"
