@@ -1,4 +1,4 @@
-# Stackstrom Bitesize Pack
+# Stackstorm Bitesize Pack
 
 Pack which extends the bitesize [Kubernetes](https://kubernetes.io/) service.
 
