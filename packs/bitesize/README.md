@@ -87,3 +87,13 @@ Upon creation the kubernetes sensor should detect the resource, and send a trigg
 The bitesize pack has rules that match the trigger and call bitesize workflows
 For cassandra and mongo you should see their creation in cloudformation
 For mysql (rds) you should see the creation in the rds console
+
+
+### Bitesize use/testing
+
+When testing in a Bitesize environment, you'll need to copy both the stackstorm and 
+VPC-nat external IP address into the vpc-nat security group whitelist to allow
+stackstorm to talk back to kubernetes
+
+Run the migrate_cluster.py script to make your cluster the 'live' one, as stackstorm
+talks to the live load balancers for kubernetes, consul and vault by default
