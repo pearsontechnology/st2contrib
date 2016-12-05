@@ -10,14 +10,14 @@
       name: "get_pvs"
       ref: "consul.get"
       parameters:
-        key: "nfs/{{nfs_spec.result.customer}}/pvs/bitesize-nfs-prd"
-        recurse: False
+        key: "nfs/{{nfs_spec.result.customer}}/pvs/"
+        recurse: True
       on-success: "pv_count"
     -
       name: "pv_count"
       ref: "core.local"
       parametres:
-        cmd: "[[ ! -z {{get_pvs.result.Value}} ]]"
+        cmd: "[[ ! -z {{get_pvs.result[0].Value}} ]]"
       on-success: "delete_persistent_volumes"
       on-failure: "delete_cloudformation_stack"
     -
@@ -25,13 +25,13 @@
       ref: "kubernetes.deleteCoreV1PersistentVolume"
       params:
         body: "{}"
-        name: "{{get_pvs.result.Value}}"
+        name: "{{get_pvs.result[0].Value}}"
       on-success: "delete_pv_from_consul"
     -
       name: "delete_pv_from_consul"
       ref: "consul.delete"
       params:
-        key: "nfs/{{nfs_spec.result.customer}}/pvs/{{get_pvs.result.Value}}"
+        key: "nfs/{{nfs_spec.result.customer}}/pvs/{{get_pvs.result[0].Value}}"
       on-success: "get_pvs"
       on-failure: "get_pvs"
     -
@@ -44,4 +44,5 @@
       name: "delete_consul_data"
       ref: "consul.delete"
       parameters:
-        key: "nfs/{{nfs_spec.result.customer}}"
+        key: "nfs/{{nfs_spec.result.customer}}/"
+        recurse: True
