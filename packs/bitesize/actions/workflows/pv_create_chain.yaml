@@ -27,16 +27,16 @@
         volsize: "{{get_volsize.result.Value}}"
         host: "{{get_host.result.Value}}"
         payload: "{{payload}}"
-      on-success: "consul_put_pv_name"
-    -
-      name: "consul_put_pv_name"
-      ref: "consul.put"
-      parameters:
-        key: "nfs/{{pv_spec.result.customer}}/pv/{{pv_spec.result.pvcname}}"
-        value: "{{pv_spec.result.pvcname}}"
       on-success: "create_persistent_volume"
     -
       name: "create_persistent_volume"
       ref: "kubernetes.createCoreV1PersistentVolume"
       params:
         body: "{{generate_pv_body.result.pvbody}}"
+      on-success: "consul_put_pv_name"
+    -
+      name: "consul_put_pv_name"
+      ref: "consul.put"
+      parameters:
+        key: "nfs/{{pv_spec.result.customer}}/pvs/{{pv_spec.result.pvcname}}"
+        value: "{{pv_spec.result.pvcname}}"

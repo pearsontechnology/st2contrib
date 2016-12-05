@@ -5,17 +5,29 @@
       ref: "bitesize.nfs_spec"
       params:
         payload: "{{payload}}"
+      on-success: "get_pvs"
+    -
+      name: "get_pvs"
+      ref: "consul.get"
+      parameters:
+        key: "nfs/{{nfs_spec.result.customer}}/pvs"
+        recurse: True
       on-success: "delete_persistent_volumes"
-      #Need to loop through all PVs stored in consul for the NFS stack and delete them
     -
       name: "delete_persistent_volumes"
       ref: "kubernetes.deleteCoreV1PersistentVolume"
       params:
         body: "{}"
-        name: "{{generate_pv_body.result.name}}"
+        name: "{{get_pvs.result.Value}}"
       on-success: "delete_cloudformation_stack"
     -
       name: "delete_cloudformation_stack"
       ref: "aws.cf_delete_stack"
       params:
         stack_name_or_id: "{{nfs_spec.result.stack_name_or_id}}"
+      on-success: "delete_consul_data"
+    -
+      name: "delete_consul_data"
+      ref: "consul.delete"
+      parameters:
+        key: "nfs/{{nfs_spec.result.customer}}"

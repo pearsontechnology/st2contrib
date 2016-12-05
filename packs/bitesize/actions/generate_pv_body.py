@@ -8,6 +8,19 @@ class GetStackBuildStatus(Action):
         name=payload['labels']['name']
         customer=payload['labels']['customer']
 
+        #Verify volsize (NFS share) exists. Don't create PV if it does not exist (could mean there is no NFS server).
+        if volsize is None:
+            msg = 'Cannot create PV. No Volume Size in Consul...NFS server may not be deployed/sharing.'
+            self.logger.error(msg)
+            raise Exception(msg)
+
+        #Verify host exists in consule. Don't create PV if it does not exist (could mean there is no NFS server).
+        if host is None:
+            msg = 'Cannot create PV. No NFS Host defined in Consul...NFS server may not be deployed/sharing.'
+            self.logger.error(msg)
+            raise Exception(msg)
+
+
         pvbody = {
             "apiVersion": "v1",
             "kind": "PersistentVolume",
