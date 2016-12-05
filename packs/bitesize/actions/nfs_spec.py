@@ -23,6 +23,7 @@ class NfsSpec(Action):
                 raise Exception(msg)
 
             volsize = payload['labels']['volsize']
+            sizeDesignator = 'G'
             if not volsize:
                 msg = 'No Volume Size Specified in payload.'
                 self.logger.error(msg)
@@ -64,7 +65,7 @@ class NfsSpec(Action):
             'template_body': template_body,
             'parameters': parameters,
             'customer': customer,
-            'volsize': volsize,
+            'volsize': volsize + sizeDesignator,
             'vpcid': vpcid
         }
 
