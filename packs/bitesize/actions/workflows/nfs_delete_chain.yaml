@@ -33,7 +33,7 @@
       ref: "consul.delete"
       parameters:
         key: "nfs/{{nfs_spec.result.customer}}/pvs/{{get_pv.result.Value}}"
-      on-success: "get_pvs"
+      on-success: "get_all_pvs"
     -
       name: "delete_cloudformation_stack"
       ref: "aws.cf_delete_stack"
