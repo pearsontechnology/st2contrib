@@ -5,19 +5,20 @@
       ref: "bitesize.nfs_spec"
       parameters:
         payload: "{{payload}}"
-      on-success: "get_pvs"
+      on-success: "get_all_pvs"
     -
-      name: "get_pvs"
+      name: "get_all_pvs"
       ref: "consul.get"
       parameters:
         key: "nfs/{{nfs_spec.result.customer}}/pvs/"
         recurse: True
-      on-success: "pv_count"
+      on-success: "get_pv"
     -
-      name: "pv_count"
-      ref: "core.local"
+      name: "get_pv"
+      ref: "consul.get"
       parameters:
-        cmd: "[[ ! -z {{get_pvs.result[0].Value}} ]]"
+        key: "nfs/{{nfs_spec.result.customer}}/pvs/get_pvs.result[0].Value"
+        recurse: False
       on-success: "delete_persistent_volumes"
       on-failure: "delete_cloudformation_stack"
     -
@@ -25,15 +26,14 @@
       ref: "kubernetes.deleteCoreV1PersistentVolume"
       parameters:
         body: "{}"
-        name: "{{get_pvs.result[0].Value}}"
+        name: "{{get_pv.result.Value}}"
       on-success: "delete_pv_from_consul"
     -
       name: "delete_pv_from_consul"
       ref: "consul.delete"
       parameters:
-        key: "nfs/{{nfs_spec.result.customer}}/pvs/{{get_pvs.result[0].Value}}"
+        key: "nfs/{{nfs_spec.result.customer}}/pvs/{{get_pv.result.Value}}"
       on-success: "get_pvs"
-      on-failure: "get_pvs"
     -
       name: "delete_cloudformation_stack"
       ref: "aws.cf_delete_stack"
