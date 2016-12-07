@@ -11,7 +11,7 @@ class NfsSpec(Action):
     def run(self, payload):
 
         customer = payload['labels']['customer']
-        pvcname= payload['name']
+        pvcname= customer + "-" + payload['name']
 
         newpayload = {
             'customer': customer,

@@ -1,48 +1,45 @@
----
-  chain:
-    -
-      name: "nfs_spec"
-      ref: "bitesize.nfs_spec"
-      parameters:
-        payload: "{{payload}}"
-      on-success: "get_all_pvs"
-    -
-      name: "get_all_pvs"
-      ref: "consul.get"
-      parameters:
-        key: "nfs/{{nfs_spec.result.customer}}/pvs/"
+version: '2.0'
+bitesize.nfs_delete_chain:
+  description: Cleanup NFS and PVS when NFS TPR is removed
+  type: direct
+  input:
+    - payload
+  tasks:
+    nfs_spec:
+      action: bitesize.nfs_spec
+      input:
+        payload: <% $.payload %>
+      publish:
+        customer: <% task(nfs_spec).result.result.customer %>
+        stack: <% task(nfs_spec).result.result.stack_name_or_id %>
+      on-success: get_pvs
+    get_pvs:
+      action: consul.get
+      input:
+        key: nfs/<% $.customer %>/pvs/
         recurse: True
-      on-success: "get_pv"
-    -
-      name: "get_pv"
-      ref: "consul.get"
-      parameters:
-        key: "nfs/{{nfs_spec.result.customer}}/pvs/get_pvs.result[0].Value"
-        recurse: False
-      on-success: "delete_persistent_volumes"
-      on-failure: "delete_cloudformation_stack"
-    -
-      name: "delete_persistent_volumes"
-      ref: "kubernetes.deleteCoreV1PersistentVolume"
-      parameters:
-        body: "{}"
-        name: "{{get_pv.result.Value}}"
-      on-success: "delete_pv_from_consul"
-    -
-      name: "delete_pv_from_consul"
-      ref: "consul.delete"
-      parameters:
-        key: "nfs/{{nfs_spec.result.customer}}/pvs/{{get_pv.result.Value}}"
-      on-success: "get_all_pvs"
-    -
-      name: "delete_cloudformation_stack"
-      ref: "aws.cf_delete_stack"
-      parameters:
-        stack_name_or_id: "{{nfs_spec.result.stack_name_or_id}}"
-      on-success: "delete_consul_data"
-    -
-      name: "delete_consul_data"
-      ref: "consul.delete"
-      parameters:
-        key: "nfs/{{nfs_spec.result.customer}}/"
+      publish:
+        pv: <% task(get_pvs).result.result.Value %>
+      on-success: delete_persistent_volume
+      on-error: delete_cloudformation_stack  #Error will happen when no PVs exist and pv publish in this task fails to occur. No more PVs, tear down the stack
+    delete_persistent_volume:
+      action: kubernetes.deleteCoreV1PersistentVolume
+      input:
+        body: {}
+        name: <% $.pv[0] %>
+      on-success: delete_pv_from_consul
+    delete_pv_from_consul:
+      action: consul.delete
+      input:
+        key: nfs/<% $.customer %>/pvs/<% $.pv[0] %>
+      on-success: get_pvs
+    delete_cloudformation_stack:
+      action: aws.cf_delete_stack
+      input:
+        stack_name_or_id: <% $.stack %>
+      on-success: delete_consul_data
+    delete_consul_data:
+      action: consul.delete
+      input:
+        key: nfs/<% $.customer %>/
         recurse: True

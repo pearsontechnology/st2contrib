@@ -1,6 +1,6 @@
 ---
   name: "nfs_delete_chain"
-  runner_type: "action-chain"
+  runner_type: "mistral-v2"
   description: "NFS cloudformation Delete Stack Action Chain Workflow"
   enabled: true
   entry_point: "workflows/nfs_delete_chain.yaml"

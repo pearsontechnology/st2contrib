@@ -5,8 +5,8 @@ import json
 class GetStackBuildStatus(Action):
     def run(self, volsize, host, payload):
 
-        name=payload['labels']['name']
         customer=payload['labels']['customer']
+        name=customer + "-" + payload['labels']['name']
 
         #Verify volsize (NFS share) exists. Don't create PV if it does not exist (could mean there is no NFS server).
         if volsize is None:
