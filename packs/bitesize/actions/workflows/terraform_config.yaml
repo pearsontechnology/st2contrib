@@ -5,6 +5,7 @@ bitesize.terraform_config:
   input:
     - region
     - envname
+    - release
   tasks:
     savefile:
       action: core.local
@@ -56,11 +57,11 @@ bitesize.terraform_config:
       input:
         config: <% $.config %>
         outfile: <% $.configfile %>
-#      on-success: 
-#        - upload_config
-#    upload_config:
-#      action: aws.s3_upload_file
-#      input:
-#        bucket: "kubernetes-bitesize-andy-a" 
-#        key: "build/<% $.region %>/<% $.envname %>/terraform.tfvars"
-#        filename: <% $.configfile %>
+      on-success: 
+        - upload_config
+    upload_config:
+      action: aws.s3_upload_file
+      input:
+        Bucket: "bitesize-deploy-configs-dev" 
+        Key: "build/<% $.region %>/<% $.envname %>/<% $.release %>/terraform.tfvars"
+        Filename: <% $.configfile %>

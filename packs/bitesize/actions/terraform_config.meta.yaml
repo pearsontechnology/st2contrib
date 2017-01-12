@@ -14,3 +14,7 @@
       type: "string"
       description: "environment name"
       required: true
+    release:
+      type: "string"
+      description: "bitesize release version"
+      required: true
