@@ -89,16 +89,18 @@ class K8sMigrateAction(Action):
 
             name = ns['metadata']['name']
             print "name: " + name
-            if name in ['default', 'kube-system']:
+            if name in ['default']:
                 continue
-
-            get_and_post("ns", ns=name)
-            get_and_post("service", ns=name)
-            get_and_post("deployments", ns=name)
-            get_and_post("ds", ns=name)
-            get_and_post("rc", ns=name)
-            get_and_post("secret", ns=name)
-            get_and_post("ingress", ns=name)
+            if name == 'kube-system':
+                get_and_post("secret", ns=name)
+            else:
+                get_and_post("ns", ns=name)
+                get_and_post("service", ns=name)
+                get_and_post("deployments", ns=name)
+                get_and_post("ds", ns=name)
+                get_and_post("rc", ns=name)
+                get_and_post("secret", ns=name)
+                get_and_post("ingress", ns=name)
 
         # third party resources aren't namespaced on the request
         #get_and_post("thirdparty")
