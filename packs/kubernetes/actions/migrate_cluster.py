@@ -89,7 +89,7 @@ class K8sMigrateAction(Action):
 
             name = ns['metadata']['name']
             print "name: " + name
-            if name in ['default']:
+            if name in ['default', 'test-runner']:
                 continue
             if name == 'kube-system':
                 get_and_post("secret", ns=name)
@@ -237,6 +237,7 @@ class K8sMigrateAction(Action):
                    "rc": {"list": "list_namespaced_replication_controller",
                           "create": "create_namespaced_replication_controller"},
                    "secret": {"list": "list_namespaced_secret",
+                              "delete": "delete_namespaced_secret",
                               "create": "create_namespaced_secret"},
                    "ingress": {"list": "list_namespaced_ingress_0",
                                "create": "create_namespaced_ingress"},
@@ -281,6 +282,8 @@ class K8sMigrateAction(Action):
         :param str ns: namespace to insert data to (optional)
         :return: list of dicts with results for each input
         """
+        if datatype == 'secret':
+          mydeletefunc = self._lookup_func(datatype, "delete")
 
         myfunc = self._lookup_func(datatype, "create")
 
@@ -311,6 +314,8 @@ class K8sMigrateAction(Action):
             # dict
             if "ns" in kwargs:
                 myns = kwargs['ns']
+                if datatype == 'secret':
+                  getattr(myapi, mydeletefunc)(item, kwargs['ns'], item['metadata']['name']).to_dict()
                 data = getattr(myapi, myfunc)(item, kwargs['ns']).to_dict()
             else:
                 data = getattr(myapi, myfunc)(item).to_dict()
