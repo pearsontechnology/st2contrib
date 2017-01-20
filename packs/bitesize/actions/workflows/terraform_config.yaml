@@ -6,7 +6,15 @@ bitesize.terraform_config:
     - region
     - envname
     - release
+  output:
+    tfvarloc: "s3://<% $.deploy_config_bucket %>/build/<% $.region %>/<% $.envname %>/<% $.release %>/terraform.tfvars"
   tasks:
+    get_config:
+      action: bitesize.get_config
+      publish:
+        deploy_config_bucket: <% task(get_config).result.result.deploy_config_bucket %>
+      on-success:
+        - savefile
     savefile:
       action: core.local
       input:
@@ -57,11 +65,11 @@ bitesize.terraform_config:
       input:
         config: <% $.config %>
         outfile: <% $.configfile %>
-      on-success: 
+      on-success:
         - upload_config
     upload_config:
       action: aws.s3_upload_file
       input:
-        Bucket: "bitesize-deploy-configs-dev" 
+        Bucket: "<% $.deploy_config_bucket %>"
         Key: "build/<% $.region %>/<% $.envname %>/<% $.release %>/terraform.tfvars"
         Filename: <% $.configfile %>
