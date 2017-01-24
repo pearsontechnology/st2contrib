@@ -1,0 +1,20 @@
+---
+  name: "terraform_config"
+  runner_type: "mistral-v2"
+  description: "Look for global, project and namespace configuration, and layer them over eachother"
+  enabled: true
+  entry_point: "workflows/terraform_config.yaml"
+  pack: "bitesize"
+  parameters:
+    region:
+      type: "string"
+      description: "aws region"
+      required: true
+    envname:
+      type: "string"
+      description: "environment name"
+      required: true
+    release:
+      type: "string"
+      description: "bitesize release version"
+      required: true

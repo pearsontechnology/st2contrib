@@ -1,0 +1,13 @@
+name: layer_terraform_config
+pack: "bitesize"
+runner_type: run-python
+description: "layer terraform config from consul to create one for a specific environment"
+enabled: true
+entry_point: "layer_terraform_config.py"
+parameters:
+  gdefaults:
+    type: object
+  rdefaults:
+    type: object
+  rspecifics:
+    type: object
