@@ -1,0 +1,75 @@
+version: '2.0'
+bitesize.terraform_config:
+  description: create a terraform config
+  type: direct
+  input:
+    - region
+    - envname
+    - release
+  output:
+    tfvarloc: "s3://<% $.deploy_config_bucket %>/build/<% $.region %>/<% $.envname %>/<% $.release %>/terraform.tfvars"
+  tasks:
+    get_config:
+      action: bitesize.get_config
+      publish:
+        deploy_config_bucket: <% task(get_config).result.result.deploy_config_bucket %>
+      on-success:
+        - savefile
+    savefile:
+      action: core.local
+      input:
+        cmd: "echo /home/stanley/terraform.tfvars.$$"
+      publish:
+        configfile: "<% task(savefile).result.stdout %>"
+      on-success:
+        - get_globals
+    get_globals:
+      action: consul.get
+      input:
+        key: "bitesize/build/global"
+        recurse: True
+      publish:
+        gdefaults: <% task(get_globals).result.result %>
+      on-complete:
+        - get_region_defaults
+    get_region_defaults:
+      action: consul.get
+      input:
+        key: "bitesize/build/<% $.region %>/defaults"
+        recurse: True
+      publish:
+        rdefaults: <% task(get_region_defaults).result.result %>
+      on-complete:
+        - get_region_specifics
+    get_region_specifics:
+      action: consul.get
+      input:
+        key: "bitesize/build/<% $.region %>/<% $.envname %>"
+        recurse: True
+      publish:
+        rspecifics: <% task(get_region_specifics).result.result %>
+      on-complete:
+        - layer_config
+    layer_config:
+      action: bitesize.layer_terraform_config
+      input:
+        gdefaults: <% dict(data=>$.gdefaults) %>
+        rdefaults: <% dict(data=>$.rdefaults) %>
+        rspecifics: <% dict(data=>$.rspecifics) %>
+      publish:
+        config: <% task(layer_config).result.result %>
+      on-success:
+        - write_terraform_config
+    write_terraform_config:
+      action: bitesize.write_terraform_config
+      input:
+        config: <% $.config %>
+        outfile: <% $.configfile %>
+      on-success:
+        - upload_config
+    upload_config:
+      action: aws.s3_upload_file
+      input:
+        Bucket: "<% $.deploy_config_bucket %>"
+        Key: "build/<% $.region %>/<% $.envname %>/<% $.release %>/terraform.tfvars"
+        Filename: <% $.configfile %>
