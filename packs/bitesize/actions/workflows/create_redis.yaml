@@ -1,0 +1,55 @@
+version: '2.0'
+bitesize.create_redis:
+  description: create a redis instance
+  type: direct
+  input:
+    - name
+  tasks:
+    get_config:
+      action: bitesize.get_config
+      publish:
+        config: <% task(get_config).result.result %>
+        environment: <% task(get_config).result.result.environment %>
+        vpc_db: <% task(get_config).result.result.vpc_db_id %>
+        vpc_db_subnets: <% task(get_config).result.result.aws_subnet_db_backend_id %>
+      on-success:
+        - create_subnet_group
+    create_subnet_group:
+      action: aws.elasticache_create_cache_subnet_group
+      input:
+        CacheSubnetGroupName: <% $.name %>
+        CacheSubnetGroupDescription: <% $.name %>
+        SubnetIds: <% $.vpc_db_subnets.split(separator=>',') %>
+      on-success:
+        - create_replication_group
+    create_replication_group:
+      action: aws.elasticache_create_replication_group
+      input:
+        ReplicationGroupId: <% $.name %>
+        CacheNodeType: "cache.m3.large"
+        Engine: "redis"
+        EngineVersion: "3.2.4"
+        ReplicationGroupDescription: <% $.name %>
+        NumCacheClusters: 3
+        CacheSubnetGroupName: <% $.name %>
+      on-success:
+        - get_redis_status
+    get_redis_status:
+      action: aws.elasticache_describe_replication_groups
+      input:
+        ReplicationGroupId: <% $.name %> 
+      wait-before: 120 
+      publish:
+        clusterstatus: <% task(get_redis_status).result.result[0].ReplicationGroups[0].Status %>
+        endpointaddress: <% task(Get_redis_status).result.result[0].ReplicationGroups[0].NodeGroups[0].PrimaryEndpoint.Address %>
+        endpointport: <% task(Get_redis_status).result.result[0].ReplicationGroups[0].NodeGroups[0].PrimaryEndpoint.Port %>
+      retry:
+        count: 20
+        delay: 30
+        continue-on: <% task(get_redis_status).result.result[0].ReplicationGroups[0].Status = 'creating' %>
+      on-success:
+        - next_steps
+    next_steps:
+      action: core.local
+      input:
+        cmd: "echo <% $.clusterstatus %>"
