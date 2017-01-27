@@ -41,8 +41,8 @@ bitesize.create_redis:
       wait-before: 120 
       publish:
         clusterstatus: <% task(get_redis_status).result.result[0].ReplicationGroups[0].Status %>
-        endpointaddress: <% task(Get_redis_status).result.result[0].ReplicationGroups[0].NodeGroups[0].PrimaryEndpoint.Address %>
-        endpointport: <% task(Get_redis_status).result.result[0].ReplicationGroups[0].NodeGroups[0].PrimaryEndpoint.Port %>
+        endpointaddress: <% task(get_redis_status).result.result[0].ReplicationGroups[0].NodeGroups[0].PrimaryEndpoint.Address %>
+        endpointport: <% task(get_redis_status).result.result[0].ReplicationGroups[0].NodeGroups[0].PrimaryEndpoint.Port %>
       retry:
         count: 20
         delay: 30
