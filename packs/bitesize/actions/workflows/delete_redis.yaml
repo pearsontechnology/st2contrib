@@ -1,0 +1,26 @@
+version: '2.0'
+bitesize.delete_redis:
+  description: delete a redis instance
+  type: direct
+  input:
+    - namespace
+    - name
+  tasks:
+    delete_replication_group:
+      action: aws.elasticache_delete_replication_group
+      input:
+        ReplicationGroupId: <% $.name %>
+        RetainPrimaryCluster: False
+      on-success:
+        - delete_subnet_group
+    delete_subnet_group:
+      action: aws.elasticache_delete_cache_subnet_group
+      input:
+        CacheSubnetGroupName: <% $.name %>
+      on-success:
+        - consul_delete_host 
+    consul_delete_host:
+      action: consul.delete
+      input:
+        key: "<% $.namespace %>/redis/<% $.name %>
+        recurse: "True"

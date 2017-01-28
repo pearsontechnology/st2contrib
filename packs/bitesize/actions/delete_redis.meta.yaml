@@ -1,0 +1,14 @@
+---
+  name: "delete_redis"
+  runner_type: "mistral-v2"
+  description: "Delete a redis instance"
+  enabled: true
+  entry_point: "workflows/delete_redis.yaml"
+  pack: "bitesize"
+  parameters:
+    name:
+      type: "string"
+      description: "name of cluster"
+    namespace:
+      type: "string"
+      description: "cluster namespace"
