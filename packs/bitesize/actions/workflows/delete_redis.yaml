@@ -22,5 +22,5 @@ bitesize.delete_redis:
     consul_delete_host:
       action: consul.delete
       input:
-        key: "<% $.namespace %>/redis/<% $.name %>
-        recurse: "True"
+        key: "<% $.namespace %>/redis/<% $.name %>"
+        recurse: True
