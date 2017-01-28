@@ -9,3 +9,6 @@
     name:
       type: "string"
       description: "name of cluster"
+    namespace:
+      type: "string"
+      description: "cluster namespace"

@@ -4,6 +4,7 @@ bitesize.create_redis:
   type: direct
   input:
     - name
+    - namespace
   tasks:
     get_config:
       action: bitesize.get_config
@@ -37,8 +38,8 @@ bitesize.create_redis:
     get_redis_status:
       action: aws.elasticache_describe_replication_groups
       input:
-        ReplicationGroupId: <% $.name %> 
-      wait-before: 120 
+        ReplicationGroupId: <% $.name %>
+      wait-before: 120
       publish:
         clusterstatus: <% task(get_redis_status).result.result[0].ReplicationGroups[0].Status %>
         endpointaddress: <% task(get_redis_status).result.result[0].ReplicationGroups[0].NodeGroups[0].PrimaryEndpoint.Address %>
@@ -48,8 +49,15 @@ bitesize.create_redis:
         delay: 30
         continue-on: <% task(get_redis_status).result.result[0].ReplicationGroups[0].Status = 'creating' %>
       on-success:
-        - next_steps
-    next_steps:
-      action: core.local
+        - consul_put_host
+    consul_put_host:
+      action: consul.put
       input:
-        cmd: "echo <% $.clusterstatus %>"
+        key: "<% $.namespace %>/<% $.name %>/hostname"
+        value: "<% $.endpointaddress %>"
+      on-success: consul_put_port
+    consul_put_port:
+      action: consul.put
+      input:
+        key: "<% $.namespace %>/<% $.name %>/port"
+        value: "<% $.endpointport %>"
