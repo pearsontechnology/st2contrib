@@ -53,11 +53,11 @@ bitesize.create_redis:
     consul_put_host:
       action: consul.put
       input:
-        key: "<% $.namespace %>/<% $.name %>/hostname"
+        key: "<% $.namespace %>/redis/<% $.name %>/hostname"
         value: "<% $.endpointaddress %>"
       on-success: consul_put_port
     consul_put_port:
       action: consul.put
       input:
-        key: "<% $.namespace %>/<% $.name %>/port"
+        key: "<% $.namespace %>/redis/<% $.name %>/port"
         value: "<% $.endpointport %>"
