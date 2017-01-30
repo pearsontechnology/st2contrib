@@ -46,7 +46,7 @@ bitesize.create_redis:
         endpointport: <% task(get_redis_status).result.result[0].ReplicationGroups[0].NodeGroups[0].PrimaryEndpoint.Port %>
       retry:
         count: 20
-        delay: 30
+        delay: 60
         continue-on: <% task(get_redis_status).result.result[0].ReplicationGroups[0].Status = 'creating' %>
       on-success:
         - consul_put_host
@@ -54,10 +54,10 @@ bitesize.create_redis:
       action: consul.put
       input:
         key: "<% $.namespace %>/redis/<% $.name %>/hostname"
-        value: "<% $.endpointaddress %>"
+        value: <% $.endpointaddress %>
       on-success: consul_put_port
     consul_put_port:
       action: consul.put
       input:
         key: "<% $.namespace %>/redis/<% $.name %>/port"
-        value: "<% $.endpointport %>"
+        value: <% str($.endpointport) %>
