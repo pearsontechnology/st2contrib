@@ -34,7 +34,7 @@ bitesize.create_redis:
         ReplicationGroupDescription: <% $.name %>
         NumCacheClusters: 3
         CacheSubnetGroupName: <% $.name %>
-        SecurityGroupIds: <% $.redis_sg %>
+        SecurityGroupIds: <% list($.redis_sg) %>
       on-success:
         - get_redis_status
     get_redis_status:
