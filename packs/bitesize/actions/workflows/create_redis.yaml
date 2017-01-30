@@ -13,6 +13,7 @@ bitesize.create_redis:
         environment: <% task(get_config).result.result.environment %>
         vpc_db: <% task(get_config).result.result.vpc_db_id %>
         vpc_db_subnets: <% task(get_config).result.result.aws_subnet_db_backend_id %>
+        redis_sg: <% task(get_config).result.result.redis_sg %>
       on-success:
         - create_subnet_group
     create_subnet_group:
@@ -33,6 +34,7 @@ bitesize.create_redis:
         ReplicationGroupDescription: <% $.name %>
         NumCacheClusters: 3
         CacheSubnetGroupName: <% $.name %>
+        SecurityGroupIds: <% $.regis_sg %>
       on-success:
         - get_redis_status
     get_redis_status:
