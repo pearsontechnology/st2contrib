@@ -1,6 +1,6 @@
 ---
-name: "kubernetes_redis_create"
-pack: "kubernetes"
+name: "redis_create"
+pack: "bitesize"
 description: "Check for redis events to manage from kubernetes thirdpartyresource sensor"
 enabled: true
 
@@ -17,6 +17,6 @@ criteria:
     pattern: "redis"
 
 action:
-  ref: "bitesize.redis_create"
+  ref: "bitesize.redis_create_chain"
   parameters:
     payload: "{{trigger}}"

@@ -1,0 +1,21 @@
+version: '2.0'
+kubernetes.redis_create_chain:
+  description: create a redis instance
+  type: direct
+  input:
+    - payload
+  tasks:
+    redis_spec:
+      action: bitesize.redis_spec
+      input:
+        - payload
+      publish:
+        name: <% task(get_redis_status).result.result[0].name %>
+        namespace: <% task(get_redis_status).result.result[0].namespace %>
+      on-success:
+        - create_redis
+    create_redis:
+      action: bitesize.create_redis
+      input:
+        - name 
+        - namespace
