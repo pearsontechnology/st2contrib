@@ -1,9 +1,9 @@
 ---
-  name: "redis_create_chain"
+  name: "redis_chain"
   runner_type: "mistral-v2"
   description: "Create a redis instance"
   enabled: true
-  entry_point: "workflows/redis_create_chain.yaml"
+  entry_point: "workflows/redis_chain.yaml"
   pack: "bitesize"
   parameters:
     payload:

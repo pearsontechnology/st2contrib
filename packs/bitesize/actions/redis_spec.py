@@ -1,4 +1,6 @@
+import re
 import json
+import uuid
 
 from st2actions.runners.pythonrunner import Action
 
@@ -15,4 +17,4 @@ class RedisSpec(Action):
             self.logger.exception('Cannot create valid name for database!')
             raise
 
-        return {"name": db_name, "namespace": payload['namespace']}
+        return {"name": db_name, "namespace": payload['namespace'], "action": payload['resource']}
