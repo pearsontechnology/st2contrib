@@ -1,0 +1,15 @@
+name: check_redis_status
+pack: "bitesize"
+runner_type: run-python
+description: "check whether a replication group still exists"
+enabled: true
+entry_point: "check_redis_status.py"
+parameters:
+  name:
+    type: "string"
+    description: "replication group name"
+    required: true
+  data:
+    type: "object"
+    description: "replication group status"
+    required: true

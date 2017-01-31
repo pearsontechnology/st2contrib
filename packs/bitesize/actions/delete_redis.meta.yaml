@@ -6,6 +6,10 @@
   entry_point: "workflows/delete_redis.yaml"
   pack: "bitesize"
   parameters:
+    workflow:
+      default: bitesize.delete_redis.main
+      immutable: true
+      type: string
     name:
       type: "string"
       description: "name of cluster"
