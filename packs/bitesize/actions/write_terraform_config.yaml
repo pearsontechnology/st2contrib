@@ -1,0 +1,13 @@
+name: write_terraform_config
+pack: "bitesize"
+runner_type: run-python
+description: "write terraform config to disk"
+enabled: true
+entry_point: "write_terraform_config.py"
+parameters:
+  config:
+    type: object
+    required: true
+  outfile:
+    type: string
+    required: true
