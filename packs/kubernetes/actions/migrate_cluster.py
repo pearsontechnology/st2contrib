@@ -83,7 +83,7 @@ class K8sMigrateAction(Action):
             #print "RESP:"
             #print json.dumps(res, sort_keys=True, indent=2, default=json_serial)
 
-            nsdata = self.k8s_src[0].list_namespace().to_dict()
+        nsdata = self.k8s_src[0].list_namespace().to_dict()
 
         for ns in nsdata['items']:
 
@@ -91,7 +91,7 @@ class K8sMigrateAction(Action):
             print "name: " + name
             if name in ['default', 'test-runner']:
                 continue
-            if name == 'kube-system':
+            if name in ['kube-system', 'test-app', 'sample-app']:
                 get_and_post("secret", ns=name)
             else:
                 get_and_post("ns", ns=name)
