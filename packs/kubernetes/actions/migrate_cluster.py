@@ -83,7 +83,7 @@ class K8sMigrateAction(Action):
             #print "RESP:"
             #print json.dumps(res, sort_keys=True, indent=2, default=json_serial)
 
-        nsdata = self.k8s_src[0].list_namespace().to_dict()
+            nsdata = self.k8s_src[0].list_namespace().to_dict()
 
         for ns in nsdata['items']:
 
@@ -315,7 +315,10 @@ class K8sMigrateAction(Action):
             if "ns" in kwargs:
                 myns = kwargs['ns']
                 if datatype == 'secret':
-                  getattr(myapi, mydeletefunc)(item, kwargs['ns'], item['metadata']['name']).to_dict()
+                  try:
+                    getattr(myapi, mydeletefunc)(item, kwargs['ns'], item['metadata']['name']).to_dict()
+                  except Exception:
+                    continue
                 data = getattr(myapi, myfunc)(item, kwargs['ns']).to_dict()
             else:
                 data = getattr(myapi, myfunc)(item).to_dict()
