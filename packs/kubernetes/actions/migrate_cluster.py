@@ -321,7 +321,7 @@ class K8sMigrateAction(Action):
                     pass
                 data = getattr(myapi, myfunc)(item, kwargs['ns']).to_dict()
                 if datatype == 'ns':
-                    time.sleep(5)
+                    time.sleep(2)
             else:
                 data = getattr(myapi, myfunc)(item).to_dict()
 
