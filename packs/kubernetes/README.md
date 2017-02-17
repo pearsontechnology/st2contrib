@@ -65,6 +65,34 @@ kubectl create -f name_of_your_file.yaml
 
 ### Deploying Mongo Replicaset in the Kubernetes Pack
 
+1. Create the mongo thirdparty resource:
+
+  * Create a yaml file with something like below:
+
+    ```yaml
+    metadata:
+        name: demo-mongo
+        namespace: demo
+        labels:
+            type: mongo
+            version: '2.6'
+            template_filename: mongo.template
+            stack_name: demo-mongo
+    apiVersion: extensions/v1beta1
+    kind: ThirdPartyResource
+    description: ""
+    versions:
+      - name: stable/v1
+    ```
+
+  * With kubectl run:
+
+    ```
+    kubectl create -f name_of_your_file.yaml
+    ```
+
+### Deploying Cassandra clusters in the Kubernetes Pack
+
 First of all, do these 2 manual steps -
 
 1. Add vault token to stackstorm:
@@ -95,39 +123,9 @@ First of all, do these 2 manual steps -
 
     _Note:_ These manual steps above would no longer be required when we move to dockerized stackstorm running directly on the PAAS ( or possibly Petsets ).
 
-3. Create the mongo thirdparty resource:
+3. Create a demo namespace
 
-  * Create a yaml file with something like below:
-
-    ```yaml
-    metadata:
-        name: demo-mongo
-        namespace: demo
-        labels:
-            type: mongo
-            version: '2.6'
-            template_filename: mongo.template
-            stack_name: demo-mongo
-    apiVersion: extensions/v1beta1
-    kind: ThirdPartyResource
-    description: ""
-    versions:
-      - name: stable/v1
-    ```
-
-  * With kubectl run:
-
-    ```
-    kubectl create -f name_of_your_file.yaml
-    ```
-
-### Deploying Cassandra clusters in the Kubernetes Pack
-
-1. As with the mongo deployment above, add the vault token to stackstorm, and the public ip's of stackstorm and vpc-nat to the VPC nat security group.
-
-2. Create a demo namespace
-
-3. Create a cassandra third party resource:
+4. Create a cassandra third party resource:
 
   * Create a yaml file with the below:
 
@@ -152,15 +150,15 @@ First of all, do these 2 manual steps -
     kubectl create -f name_of_your_file.yaml
     ```
 
-4. Once the stack is built, the instances will continue to deploy and configure - this takes around 20m. The last thing you'll see in stackstorm is 3 cass_acl and a standalone vault_write action in the stackstorm history tab
+5. Once the stack is built, the instances will continue to deploy and configure - this takes around 20m. The last thing you'll see in stackstorm is 3 cass_acl and a standalone vault_write action in the stackstorm history tab
 
-5. Upon completion there will be keys in consul under namespace/clustername and vault under the same for the password. The user will be bitesize
+6. Upon completion there will be keys in consul under namespace/clustername and vault under the same for the password. The user will be bitesize
 
-6. To see the cluster status, login to any of the cassandra nodes and run:
+7. To see the cluster status, login to any of the cassandra nodes and run:
 
   ``` /home/cassandra/current/bin/nodetool status ```
 
-7. To delete, remove the third party resource within kubernetes
+8. To delete, remove the third party resource within kubernetes
 
   * With kubectl run:
 
