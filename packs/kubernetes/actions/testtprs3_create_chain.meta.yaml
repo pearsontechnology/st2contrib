@@ -1,0 +1,11 @@
+---
+  name: "testtprs3_create_chain"
+  runner_type: "action-chain"
+  description: "Test thirdparty resources s3 Create Action Chain Workflow"
+  enabled: true
+  entry_point: "workflows/testtprs3_create_chain.yaml"
+  pack: "kubernetes"
+  parameters:
+    payload:
+      type: "object"
+      description: "payload object from kubernetes sensor"
