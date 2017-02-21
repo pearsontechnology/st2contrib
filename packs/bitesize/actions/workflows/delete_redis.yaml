@@ -1,0 +1,54 @@
+version: '2.0'
+name: bitesize.delete_redis
+description: delete a redis instance
+
+workflows:
+  main:
+    type: direct
+    input:
+      - namespace
+      - name
+    tasks:
+      delete_replication_group:
+        action: aws.elasticache_delete_replication_group
+        input:
+          ReplicationGroupId: <% $.name %>
+          RetainPrimaryCluster: False
+        on-success:
+          - get_redis_status
+      get_redis_status:
+        workflow: check_delete_status
+        input:
+          name: <% $.name %>
+        retry:
+          count: 20
+          delay: 60
+        on-success:
+          - delete_subnet_group
+      delete_subnet_group:
+        action: aws.elasticache_delete_cache_subnet_group
+        input:
+          CacheSubnetGroupName: <% $.name %>
+        on-success:
+          - consul_delete_host 
+      consul_delete_host:
+        action: consul.delete
+        input:
+          key: "<% $.namespace %>/redis/<% $.name %>"
+          recurse: True
+  check_delete_status:
+    type: direct
+    input:
+      - name
+    tasks:
+      get_redis_status:
+        action: aws.elasticache_describe_replication_groups
+        publish:
+          data: <% task(get_redis_status).result.result[0] %>
+        on-success:
+          - check_redis_status
+      check_redis_status:
+        action: bitesize.check_redis_status
+        input:
+          data: <% $.data %>
+          name: <% $.name %>

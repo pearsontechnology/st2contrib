@@ -1,0 +1,9 @@
+---
+  name: "redis_spec"
+  entry_point: "redis_spec.py"
+  pack: "bitesize"
+  description: "Munge Kubernetes data so we can create a database."
+  runner_type: run-python
+  parameters:
+    payload:
+      type: object
