@@ -91,7 +91,7 @@ class K8sMigrateAction(Action):
             print "name: " + name
             if name in ['default', 'test-runner']:
                 continue
-            if name in ['kube-system', 'test-app', 'sample-app']:
+            if name == 'kube-system':
                 get_and_post("secret", ns=name)
             else:
                 get_and_post("ns", ns=name)
@@ -318,8 +318,10 @@ class K8sMigrateAction(Action):
                   try:
                     getattr(myapi, mydeletefunc)(item, kwargs['ns'], item['metadata']['name']).to_dict()
                   except Exception:
-                    continue
+                    pass
                 data = getattr(myapi, myfunc)(item, kwargs['ns']).to_dict()
+                if datatype == 'ns':
+                    time.sleep(2)
             else:
                 data = getattr(myapi, myfunc)(item).to_dict()
 
