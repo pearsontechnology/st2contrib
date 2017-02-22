@@ -1,0 +1,28 @@
+version: '2.0'
+bitesize.redis_chain:
+  description: create/delete a redis instance
+  type: direct
+  input:
+    - payload
+  tasks:
+    redis_spec:
+      action: bitesize.redis_spec
+      input:
+        payload: <% $.payload %>
+      publish:
+        name: <% task(redis_spec).result.result.name %>
+        namespace: <% task(redis_spec).result.result.namespace %>
+        action: <% task(redis_spec).result.result.action %>
+      on-success:
+        - create_redis: <% $.action = 'ADDED' %>
+        - delete_redis: <% $.action = 'DELETED' %>
+    create_redis:
+      action: bitesize.create_redis
+      input:
+        name: <% $.name %>
+        namespace: <% $.namespace %>
+    delete_redis:
+      action: bitesize.delete_redis
+      input:
+        name: <% $.name %>
+        namespace: <% $.namespace %>
