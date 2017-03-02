@@ -1,0 +1,16 @@
+---
+  chain:
+    -
+      name: "testtprs3_spec"
+      ref: "kubernetes.testtprs3_spec"
+      params:
+        payload: "{{payload}}"
+      on-success: "testtprs3_upload"
+    
+    -
+      name: "testtprs3_upload"
+      ref: "aws.s3_upload_file"
+      params:
+        Filename: "/tmp/test-tpr-s3"
+        Bucket: "{{testtprs3_spec.result['bucket']}}"
+        Key: "test-tpr-s3"
