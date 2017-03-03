@@ -1,0 +1,12 @@
+---
+  name: "testtprs3_spec"
+  entry_point: "testtprs3_spec.py"
+  pack: "kubernetes"
+  description: "test service for thirdpartyresources and s3"
+  enabled: true
+  runner_type: run-python
+  parameters:
+    payload:
+      type: "object"
+      description: "kubernetes payload object, not required in stackstorm Web UI"
+

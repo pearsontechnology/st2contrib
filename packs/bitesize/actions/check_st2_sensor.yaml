@@ -1,0 +1,6 @@
+name: check_st2_sensor
+pack: "bitesize"
+runner_type: run-python
+description: "report status of st2 sensor istances"
+enabled: true
+entry_point: "check_st2_sensor.py"
