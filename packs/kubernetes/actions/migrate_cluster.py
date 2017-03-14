@@ -318,8 +318,8 @@ class K8sMigrateAction(Action):
                   try:
                     getattr(myapi, mydeletefunc)(item, kwargs['ns'], item['metadata']['name']).to_dict()
                   except Exception:
-                    continue
-                data = getattr(myapi, myfunc)(item, kwargs['ns']).to_dict()
+                    pass
+                  data = getattr(myapi, myfunc)(item, kwargs['ns']).to_dict()
             else:
                 data = getattr(myapi, myfunc)(item).to_dict()
 
