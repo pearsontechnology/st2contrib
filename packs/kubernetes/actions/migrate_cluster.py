@@ -101,6 +101,9 @@ class K8sMigrateAction(Action):
                 get_and_post("rc", ns=name)
                 get_and_post("secret", ns=name)
                 get_and_post("ingress", ns=name)
+                get_and_post("limitrange", ns=name)
+                #get_and_post("pv")
+                #get_and_post("pvclaim", ns=name)
 
         # third party resources aren't namespaced on the request
         #get_and_post("thirdparty")
@@ -203,6 +206,11 @@ class K8sMigrateAction(Action):
                                     'spec']['template']['spec']:
                                 del item['spec']['template'][
                                     'spec']['restartPolicy']
+                            if "containers" in item['spec']['template']['spec']:
+                                for cont in item['spec']['template']['spec']['containers']:
+                                    if "livenessProbe" in cont:
+                                        if "_exec" in cont['livenessProbe']:
+                                            cont['livenessProbe']['exec'] = cont['livenessProbe'].pop('_exec')
                     if "clusterIP" in item['spec']:
                         del item['spec']['clusterIP']
                     if "strategy" in item['spec']:
@@ -263,7 +271,7 @@ class K8sMigrateAction(Action):
                                   "create": "create_namespaced_network_policy"},
                    "configmap": {"list": "list_namespaced_config_map_19",
                                  "create": "create_namespaced_config_map"},
-                   "limitrange": {"list": "list_namespaced_limit_range_22",
+                   "limitrange": {"list": "list_namespaced_limit_range_0",
                                   "create": "create_namespaced_limit_range"},
                    "podtemplate": {"list": "list_namespaced_pod_template",
                                    "create": "create_namespaced_pod_template"},
@@ -283,7 +291,7 @@ class K8sMigrateAction(Action):
         :return: list of dicts with results for each input
         """
         if datatype == 'secret':
-          mydeletefunc = self._lookup_func(datatype, "delete")
+            mydeletefunc = self._lookup_func(datatype, "delete")
 
         myfunc = self._lookup_func(datatype, "create")
 
@@ -315,10 +323,10 @@ class K8sMigrateAction(Action):
             if "ns" in kwargs:
                 myns = kwargs['ns']
                 if datatype == 'secret':
-                  try:
-                    getattr(myapi, mydeletefunc)(item, kwargs['ns'], item['metadata']['name']).to_dict()
-                  except Exception:
-                    continue
+                    try:
+                        getattr(myapi, mydeletefunc)(item, kwargs['ns'], item['metadata']['name']).to_dict()
+                    except Exception:
+                        pass
                 data = getattr(myapi, myfunc)(item, kwargs['ns']).to_dict()
             else:
                 data = getattr(myapi, myfunc)(item).to_dict()
