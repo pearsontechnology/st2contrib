@@ -206,6 +206,11 @@ class K8sMigrateAction(Action):
                                     'spec']['template']['spec']:
                                 del item['spec']['template'][
                                     'spec']['restartPolicy']
+                            if "containers" in item['spec']['template']['spec']:
+                                for cont in item['spec']['template']['spec']['containers']:
+                                    if "livenessProbe" in cont:
+                                        if "_exec" in cont['livenessProbe']:
+                                            cont['livenessProbe']['exec'] = cont['livenessProbe'].pop('_exec')
                     if "clusterIP" in item['spec']:
                         del item['spec']['clusterIP']
                     if "strategy" in item['spec']:
