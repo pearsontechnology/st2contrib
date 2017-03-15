@@ -102,8 +102,8 @@ class K8sMigrateAction(Action):
                 get_and_post("secret", ns=name)
                 get_and_post("ingress", ns=name)
                 get_and_post("limitrange", ns=name)
-                get_and_post("pv")
-                get_and_post("pvclaim", ns=name)
+                #get_and_post("pv")
+                #get_and_post("pvclaim", ns=name)
 
         # third party resources aren't namespaced on the request
         #get_and_post("thirdparty")
@@ -266,7 +266,7 @@ class K8sMigrateAction(Action):
                                   "create": "create_namespaced_network_policy"},
                    "configmap": {"list": "list_namespaced_config_map_19",
                                  "create": "create_namespaced_config_map"},
-                   "limitrange": {"list": "list_namespaced_limit_range_22",
+                   "limitrange": {"list": "list_namespaced_limit_range_0",
                                   "create": "create_namespaced_limit_range"},
                    "podtemplate": {"list": "list_namespaced_pod_template",
                                    "create": "create_namespaced_pod_template"},
