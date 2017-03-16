@@ -208,7 +208,7 @@ class K8sMigrateAction(Action):
                                     'spec']['restartPolicy']
                             if "containers" in item['spec']['template']['spec']:
                                 for cont in item['spec']['template']['spec']['containers']:
-                                    if "livenessProbe" in cont:
+                                    if cont['livenessProbe'] is not None:
                                         if "_exec" in cont['livenessProbe']:
                                             cont['livenessProbe']['exec'] = cont['livenessProbe'].pop('_exec')
                     if "clusterIP" in item['spec']:
