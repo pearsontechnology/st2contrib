@@ -15,7 +15,8 @@
       type: "string"
       enum:
         - dev
-        - tst
+        - qa
+        - nft
         - stg
         - prd
       default: dev
