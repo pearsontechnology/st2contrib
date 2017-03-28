@@ -101,6 +101,8 @@ class K8sMigrateAction(Action):
                 get_and_post("rc", ns=name)
                 get_and_post("secret", ns=name)
                 get_and_post("ingress", ns=name)
+                get_and_post("limitrange", ns=name)
+                get_and_post("resquota", ns=name)
 
         # third party resources aren't namespaced on the request
         #get_and_post("thirdparty")
