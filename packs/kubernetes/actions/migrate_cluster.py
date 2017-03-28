@@ -102,6 +102,7 @@ class K8sMigrateAction(Action):
                 get_and_post("secret", ns=name)
                 get_and_post("ingress", ns=name)
                 get_and_post("limitrange", ns=name)
+                get_and_post("resquota", ns=name)
                 #get_and_post("pv")
                 #get_and_post("pvclaim", ns=name)
 
