@@ -91,7 +91,7 @@ class K8sMigrateAction(Action):
             print "name: " + name
             if name in ['default', 'test-runner']:
                 continue
-            if name in ['kube-system', 'test-app', 'sample-app']:
+            if name in ['kube-system']:
                 get_and_post("secret", ns=name)
             else:
                 get_and_post("ns", ns=name)
