@@ -48,8 +48,19 @@ bitesize.terraform_config:
         recurse: True
       publish:
         rspecifics: <% task(get_region_specifics).result.result %>
-      on-complete:
+      on-success:
         - layer_config
+      on-error:
+        - layer_config_no_specifics
+    layer_config_no_specifics:
+      action: bitesize.layer_terraform_config
+      input:
+        gdefaults: <% dict(data=>$.gdefaults) %>
+        rdefaults: <% dict(data=>$.rdefaults) %>
+      publish:
+        config: <% task(layer_config_no_specifics).result.result %>
+      on-success:
+        - write_terraform_config
     layer_config:
       action: bitesize.layer_terraform_config
       input:
