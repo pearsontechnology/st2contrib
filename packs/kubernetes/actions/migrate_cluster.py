@@ -18,6 +18,7 @@ class K8sMigrateAction(Action):
 
     def run(
             self,
+            ns_migration,
             src_k8s_url,
             src_k8s_password,
             dst_k8s_url,
@@ -84,27 +85,26 @@ class K8sMigrateAction(Action):
             #print json.dumps(res, sort_keys=True, indent=2, default=json_serial)
 
         nsdata = self.k8s_src[0].list_namespace().to_dict()
-
-        for ns in nsdata['items']:
-
-            name = ns['metadata']['name']
-            print "name: " + name
-            if name in ['default', 'test-runner']:
-                continue
-            if name in ['kube-system']:
-                get_and_post("secret", ns=name)
-            else:
-                get_and_post("ns", ns=name)
-                get_and_post("service", ns=name)
-                get_and_post("deployments", ns=name)
-                get_and_post("ds", ns=name)
-                get_and_post("rc", ns=name)
-                get_and_post("secret", ns=name)
-                get_and_post("ingress", ns=name)
-                get_and_post("limitrange", ns=name)
-                get_and_post("resquota", ns=name)
-                #get_and_post("pv")
-                #get_and_post("pvclaim", ns=name)
+        if ns_migration == "kube-system":
+            get_and_post("secret", ns=ns_migration)
+        else:
+            for ns in nsdata['items']:
+                name = ns['metadata']['name']
+                print "name: " + name
+                if name in ['default', 'test-runner', 'kube-system']:
+                    continue
+                else:
+                    get_and_post("ns", ns=name)
+                    get_and_post("service", ns=name)
+                    get_and_post("deployments", ns=name)
+                    get_and_post("ds", ns=name)
+                    get_and_post("rc", ns=name)
+                    get_and_post("secret", ns=name)
+                    get_and_post("ingress", ns=name)
+                    get_and_post("limitrange", ns=name)
+                    get_and_post("resquota", ns=name)
+                    #get_and_post("pv")
+                    #get_and_post("pvclaim", ns=name)
 
         # third party resources aren't namespaced on the request
         #get_and_post("thirdparty")
