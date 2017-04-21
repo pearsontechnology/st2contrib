@@ -327,7 +327,7 @@ class K8sMigrateAction(Action):
                     try:
                         getattr(myapi, mydeletefunc)(item, kwargs['ns'], item['metadata']['name']).to_dict()
                     except Exception:
-                    continue
+                        continue
                 data = getattr(myapi, myfunc)(item, kwargs['ns']).to_dict()
                 if datatype == 'ns':
                     time.sleep(2)
