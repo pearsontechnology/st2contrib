@@ -91,7 +91,7 @@ class K8sMigrateAction(Action):
             for ns in nsdata['items']:
                 name = ns['metadata']['name']
                 print "name: " + name
-                if name in ['default', 'test-runner', 'kube-system']:
+                if name in ['default', 'test-runner', 'kube-system'] or name.startswith('test-namespace-'):
                     continue
                 else:
                     get_and_post("ns", ns=name)
