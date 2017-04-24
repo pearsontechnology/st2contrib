@@ -11,3 +11,4 @@ parameters:
     type: object
   rspecifics:
     type: object
+    required: false 

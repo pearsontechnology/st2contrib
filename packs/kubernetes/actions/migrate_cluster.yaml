@@ -6,6 +6,11 @@
   enabled: true
   runner_type: run-python
   parameters:
+    ns_migration:
+      type: "string"
+      description: "Namespaces to Migrate (kube-system/non-kube-system)"
+      required: true
+      position: 0
     src_k8s_url:
       type: "string"
       description: "Source kubernetes url e.g https://master-a.pidah.kube"

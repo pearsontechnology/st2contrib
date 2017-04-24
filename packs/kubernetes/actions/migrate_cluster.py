@@ -18,6 +18,7 @@ class K8sMigrateAction(Action):
 
     def run(
             self,
+            ns_migration,
             src_k8s_url,
             src_k8s_password,
             dst_k8s_url,
@@ -84,23 +85,26 @@ class K8sMigrateAction(Action):
             #print json.dumps(res, sort_keys=True, indent=2, default=json_serial)
 
         nsdata = self.k8s_src[0].list_namespace().to_dict()
-
-        for ns in nsdata['items']:
-
-            name = ns['metadata']['name']
-            print "name: " + name
-            if name in ['default', 'test-runner']:
-                continue
-            if name in ['kube-system', 'test-app', 'sample-app']:
-                get_and_post("secret", ns=name)
-            else:
-                get_and_post("ns", ns=name)
-                get_and_post("service", ns=name)
-                get_and_post("deployments", ns=name)
-                get_and_post("ds", ns=name)
-                get_and_post("rc", ns=name)
-                get_and_post("secret", ns=name)
-                get_and_post("ingress", ns=name)
+        if ns_migration == "kube-system":
+            get_and_post("secret", ns=ns_migration)
+        else:
+            for ns in nsdata['items']:
+                name = ns['metadata']['name']
+                print "name: " + name
+                if name in ['default', 'test-runner', 'kube-system']:
+                    continue
+                else:
+                    get_and_post("ns", ns=name)
+                    get_and_post("service", ns=name)
+                    get_and_post("deployments", ns=name)
+                    get_and_post("ds", ns=name)
+                    get_and_post("rc", ns=name)
+                    get_and_post("secret", ns=name)
+                    get_and_post("ingress", ns=name)
+                    get_and_post("limitrange", ns=name)
+                    get_and_post("resquota", ns=name)
+                    #get_and_post("pv")
+                    #get_and_post("pvclaim", ns=name)
 
         # third party resources aren't namespaced on the request
         #get_and_post("thirdparty")
@@ -203,6 +207,11 @@ class K8sMigrateAction(Action):
                                     'spec']['template']['spec']:
                                 del item['spec']['template'][
                                     'spec']['restartPolicy']
+                            if "containers" in item['spec']['template']['spec']:
+                                for cont in item['spec']['template']['spec']['containers']:
+                                    if cont['livenessProbe'] is not None:
+                                        if "_exec" in cont['livenessProbe']:
+                                            cont['livenessProbe']['exec'] = cont['livenessProbe'].pop('_exec')
                     if "clusterIP" in item['spec']:
                         del item['spec']['clusterIP']
                     if "strategy" in item['spec']:
@@ -263,7 +272,7 @@ class K8sMigrateAction(Action):
                                   "create": "create_namespaced_network_policy"},
                    "configmap": {"list": "list_namespaced_config_map_19",
                                  "create": "create_namespaced_config_map"},
-                   "limitrange": {"list": "list_namespaced_limit_range_22",
+                   "limitrange": {"list": "list_namespaced_limit_range_0",
                                   "create": "create_namespaced_limit_range"},
                    "podtemplate": {"list": "list_namespaced_pod_template",
                                    "create": "create_namespaced_pod_template"},
@@ -283,7 +292,7 @@ class K8sMigrateAction(Action):
         :return: list of dicts with results for each input
         """
         if datatype == 'secret':
-          mydeletefunc = self._lookup_func(datatype, "delete")
+            mydeletefunc = self._lookup_func(datatype, "delete")
 
         myfunc = self._lookup_func(datatype, "create")
 
@@ -315,10 +324,10 @@ class K8sMigrateAction(Action):
             if "ns" in kwargs:
                 myns = kwargs['ns']
                 if datatype == 'secret':
-                  try:
-                    getattr(myapi, mydeletefunc)(item, kwargs['ns'], item['metadata']['name']).to_dict()
-                  except Exception:
-                    continue
+                    try:
+                        getattr(myapi, mydeletefunc)(item, kwargs['ns'], item['metadata']['name']).to_dict()
+                    except Exception:
+                        pass
                 data = getattr(myapi, myfunc)(item, kwargs['ns']).to_dict()
             else:
                 data = getattr(myapi, myfunc)(item).to_dict()
