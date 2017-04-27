@@ -1,0 +1,6 @@
+name: create_keycloak_realm
+pack: "bitesize"
+runner_type: run-python
+description: "Creates a new realm in Keycloak"
+enabled: true
+entry_point: "create_keycloak_realm.py"
