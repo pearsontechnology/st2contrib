@@ -1,0 +1,7 @@
+---
+  name: "create_keycloak_realm_chain"
+  runner_type: "action-chain"
+  description: "Keycloak Realm Create Action Chain Workflow"
+  enabled: true
+  entry_point: "workflows/create_keycloak_realm.yaml"
+  pack: "bitesize"

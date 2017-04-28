@@ -1,0 +1,12 @@
+---
+  chain:
+    -
+      name: "create_keycloak_realm"
+      ref: "bitesize.create_keycloak_realm"
+      on-failure: "retry"
+    -
+      name: "retry"
+      ref: "core.local"
+      parameters:
+        cmd: "sleep 60"
+      on-success: "create_keycloak_realm"

@@ -38,7 +38,8 @@ class CreateKeycloakRealm(Action):
             headers=headers,
             data=json.dumps(realm_data))
 
-        if client.status_code in [201, 409]:
-            print "whoopee! all done"
-        else:
-            print " we got a prblem :( "
+        if client.status_code not in [201, 409]:
+            raise Exception('keycloak realm not created.')
+
+        return True
+            
