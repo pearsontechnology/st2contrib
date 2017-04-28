@@ -15,6 +15,7 @@ class CreateKeycloakRealm(Action):
 
         response = requests.post(
             token_endpoint_url,
+            timeout=5,
             data={
                 "username": "admin",
                 "password": "test",
@@ -42,4 +43,3 @@ class CreateKeycloakRealm(Action):
             raise Exception('keycloak realm not created.')
 
         return True
-            
