@@ -12,13 +12,14 @@ class CreateKeycloakRealm(Action):
         base_url = "http://auth" + "." + environment + "." + domain + "/"
         token_endpoint_url = base_url + "auth/realms/master/protocol/openid-connect/token"
         realms_endpoint_url = base_url + "auth/admin/realms"
+        keycloak_password = self.config.get('keycloak_password')
 
         response = requests.post(
             token_endpoint_url,
             timeout=5,
             data={
                 "username": "admin",
-                "password": "test",
+                "password": keycloak_password,
                 "grant_type": "password",
                 "client_id": "admin-cli"})
         json_response = json.loads(response.text)
