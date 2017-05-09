@@ -1,6 +1,7 @@
 import json
 import importlib
 from datetime import datetime
+import time
 
 from st2actions.runners.pythonrunner import Action
 
@@ -47,25 +48,55 @@ class K8sMigrateAction(Action):
                 dst_k8s_url,
                 dst_k8s_password))
 
-        def get_and_post(datatype, **kwargs):
+        def get_post_compare(datatype, name, **kwargs):
+            srcdata = self.get_data(self.k8s_src, datatype, ns=name)
+            try:
+                res = post(srcdata, datatype, ns=name)
+            except Exception as e:
+                print "Excepetion occurred when posting datatype '{0}' for namespace '{1}' to the destination K8S API. Reason: {2}".format(datatype,name,e.reason)
+            dstdata = self.get_data(self.k8s_dst, datatype, ns=name)
+
+            if srcdata and not dstdata:
+                print ("--------- Entering Retry Logic ----------------")
+                print "Re-querying desitination for datatype: '{0}'".format(datatype)
+                time.sleep(5)  #Wait a brief moment and then query the destination again
+                dstdata = self.get_data(self.k8s_dst, datatype, ns=name)
+                if srcdata and not dstdata:  #Still not there, try a single repost
+                    print "Retrying post to destination for datatype: '{0}'".format(datatype)
+                    try:
+                        res = post(srcdata, datatype, ns=name)
+                    except Exception as e:
+                        print "Excepetion occurred when posting datatype '{0}' for namespace '{1}' to the destination K8S API. Reason: {2}".format(datatype,name,e.reason)
+                    time.sleep(10)  #Wait a brief moment and then query the destination one last time before failing workflow
+                    dstdata = self.get_data(self.k8s_dst, datatype, ns=name)
+                    if srcdata and not dstdata:
+                        print "Datatype '{0}' for namespace '{1}' exists on src but was not successfully migrated to destination".format(datatype,name)
+                        raise Exception("Source Data was not created on Destination ")
+
+            #print ("Source Data:")
+            #print json.dumps(srcdata, sort_keys=True, indent=2, default=json_serial)
+            #print ("Destination Data:")
+            #print json.dumps(dstdata, sort_keys=True, indent=2, default=json_serial)
+
+        def post(data, datatype, **kwargs):
+
             """
             Copy data from one cluster to another
 
+            :param object data: json object of data to be posted
             :param str datatype: the type of k8s object (required)
             :param str ns: k8s namespace (optional)
 
             """
-
-            tmp = self.get_data(datatype, **kwargs)
 
             # namespaces don't need a namespace argument when they're created
             if datatype == "ns":
                 kwargs = {}
 
             if datatype == "thirdparty":
-                print json.dumps(tmp, sort_keys=True, indent=2, default=json_serial)
+                print json.dumps(data, sort_keys=True, indent=2, default=json_serial)
                 # split third party resources and post per namespace
-                for tpr in tmp:
+                for tpr in data:
                     print "++++"
                     print json.dumps(tpr, sort_keys=True, indent=2, default=json_serial)
                     print "++++"
@@ -79,37 +110,32 @@ class K8sMigrateAction(Action):
                         print "no namespace for %s - skipping" % tpr['metadata']['name']
             else:
                 # post data to second cluster
-                res = self.post_data(datatype, tmp, **kwargs)
-
+                res = self.post_data(datatype, data, **kwargs)
+            return res
             #print "RESP:"
             #print json.dumps(res, sort_keys=True, indent=2, default=json_serial)
-
         nsdata = self.k8s_src[0].list_namespace().to_dict()
         if ns_migration == "kube-system":
-            get_and_post("secret", ns=ns_migration)
+            print "Operating on Namespace: kube-system"
+            get_post_compare("secret", ns_migration)
         else:
             for ns in nsdata['items']:
                 name = ns['metadata']['name']
-                print "name: " + name
                 if name in ['default', 'test-runner', 'kube-system']:
                     continue
                 else:
-                    get_and_post("ns", ns=name)
-                    get_and_post("service", ns=name)
-                    get_and_post("deployments", ns=name)
-                    get_and_post("ds", ns=name)
-                    get_and_post("rc", ns=name)
-                    get_and_post("secret", ns=name)
-                    get_and_post("ingress", ns=name)
-                    get_and_post("limitrange", ns=name)
-                    get_and_post("resquota", ns=name)
-                    #get_and_post("pv")
-                    #get_and_post("pvclaim", ns=name)
+                    print "Operating on Namespace: " + name
+                    get_post_compare("ns", name)
+                    get_post_compare("service", name)
+                    get_post_compare("deployments", name)
+                    get_post_compare("ds", name)
+                    get_post_compare("rc", name)
+                    get_post_compare("secret", name)
+                    get_post_compare("ingress", name)
+                    get_post_compare("limitrange", name)
+                    get_post_compare("resquota", name)
 
-        # third party resources aren't namespaced on the request
-        #get_and_post("thirdparty")
-
-    def get_data(self, datatype, **kwargs):
+    def get_data(self, target, datatype, **kwargs):
         """
         Given a datatype and optional namespace, requests data from a kubernetes cluster
 
@@ -122,10 +148,10 @@ class K8sMigrateAction(Action):
 
         # lookup which api the function lives in and set that to be the api
         # endpoint to use
-        if(myfunc in dir(self.k8s_src[0])):
-            myapi = self.k8s_src[0]
-        if(myfunc in dir(self.k8s_src[1])):
-            myapi = self.k8s_src[1]
+        if(myfunc in dir(target[0])):
+            myapi = target[0]
+        if(myfunc in dir(target[1])):
+            myapi = target[1]
 
         # third party resources don't need a namespace argument when they're queried,
         # but will when posted. best to strip it out here
@@ -227,6 +253,7 @@ class K8sMigrateAction(Action):
 
         return output
 
+
     def _lookup_func(self, func, functype):
         """
         Given a k8s object, and an operation type, return the library function
@@ -303,11 +330,10 @@ class K8sMigrateAction(Action):
         if(myfunc in dir(self.k8s_dst[1])):
             myapi = self.k8s_dst[1]
 
-        print "Datatype: " + datatype
         if "ns" in kwargs:
-            print "ns: " + kwargs['ns']
+            print "Posting Datatype {0} to namespace:{1}".format(datatype,kwargs['ns'])
         else:
-            print "ns: None"
+            print "Posting Datatype {0}".format(datatype)
         #print "body: "
         #print json.dumps(body, sort_keys=True, indent=2, default=json_serial)
         #print type(body)
