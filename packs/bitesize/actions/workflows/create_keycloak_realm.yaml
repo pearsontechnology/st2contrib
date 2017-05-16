@@ -8,5 +8,5 @@
       name: "retry"
       ref: "core.local"
       parameters:
-        cmd: "sleep 60"
+        cmd: "sleep 30"
       on-success: "create_keycloak_realm"
