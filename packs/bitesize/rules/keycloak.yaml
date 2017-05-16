@@ -1,0 +1,17 @@
+---
+name: "keycloak_create_realm"
+pack: "bitesize"
+description: "Check for keycloak events to manage from kubernetes namespace sensor"
+enabled: true
+
+trigger:
+  type: "kubernetes.namespace"
+  parameters: {}
+
+criteria:
+  trigger.labels.name:
+    type: "equals"
+    pattern: "keycloak"
+
+action:
+  ref: "bitesize.create_keycloak_realm_chain"
