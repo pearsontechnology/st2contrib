@@ -18,3 +18,7 @@
       type: "string"
       description: "bitesize release version"
       required: true
+    overrides:
+      type: "object"
+      description: "var overrides"
+      required: false
