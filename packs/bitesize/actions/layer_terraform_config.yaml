@@ -11,6 +11,7 @@ parameters:
     type: object
   rspecifics:
     type: object
+    required: false
   overrides:
     type: object
-    required: false
+    required: false 
